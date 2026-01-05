@@ -1,15 +1,74 @@
-import React from 'react';
 
-const RecycleBin = () => (
-  <div>
-    <h2>Deleted Records</h2>
-    <div className="card p-4 mt-4">
-      <div className="d-flex align-items-center mb-3">
-        <span className="fw-bold fs-5">Recycle Bin</span>
+import React, { useEffect, useState, useContext } from 'react';
+import axios from 'axios';
+import { AuthContext } from '../context/AuthContext';
+
+const RecycleBin = () => {
+  const { user } = useContext(AuthContext);
+  const [deletedTransactions, setDeletedTransactions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    const fetchDeleted = async () => {
+      setLoading(true);
+      setError('');
+      try {
+        const res = await axios.get('http://localhost:5000/api/recycle-bin');
+        setDeletedTransactions(res.data);
+      } catch (err) {
+        setError('Failed to load recycle bin');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchDeleted();
+  }, []);
+
+  return (
+    <div>
+      <h2>Deleted Records</h2>
+      <div className="card p-4 mt-4">
+        <div className="d-flex align-items-center mb-3">
+          <span className="fw-bold fs-5">Recycle Bin</span>
+        </div>
+        {loading ? (
+          <div className="text-center text-muted">Loading...</div>
+        ) : error ? (
+          <div className="text-danger text-center">{error}</div>
+        ) : deletedTransactions.length === 0 ? (
+          <div className="text-center text-muted">Recycle bin is empty</div>
+        ) : (
+          <div className="table-responsive">
+            <table className="table table-bordered align-middle">
+              <thead className="table-light">
+                <tr>
+                  <th>Date Deleted</th>
+                  <th>Description</th>
+                  <th>Type</th>
+                  <th>Category</th>
+                  <th>Amount</th>
+                  <th>Original Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {deletedTransactions.map(t => (
+                  <tr key={t._id}>
+                    <td>{t.deletedAt ? new Date(t.deletedAt).toLocaleString() : ''}</td>
+                    <td>{t.description}</td>
+                    <td>{t.type}</td>
+                    <td>{t.category}</td>
+                    <td>₹{t.amount?.toLocaleString()}</td>
+                    <td>{t.date ? new Date(t.date).toLocaleDateString() : ''}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
-      <div className="text-center text-muted">Recycle bin is empty</div>
     </div>
-  </div>
-);
+  );
+};
 
 export default RecycleBin;
