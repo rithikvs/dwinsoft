@@ -1,0 +1,101 @@
+/* LoginAnimated.css - for login/register animation */
+
+.animated-bg {
+  background: url('../assets/login.jpg') no-repeat center center fixed;
+  background-size: cover;
+  position: relative;
+  min-height: 110vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.9s;
+  overflow: hidden;
+}
+
+.animated-bg::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 200%;
+  height: 100%;
+  background: rgba(255,255,255,0.65); /* white overlay with opacity */
+  z-index: 0;
+  pointer-events: none;
+}
+
+.animated-card {
+  position: relative;
+  z-index: 1;
+}
+
+.animated-card {
+  width: 400px;
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+  padding: 2.5rem 2rem 2rem 2rem;
+  position: relative;
+  overflow: hidden;
+  animation: popIn 0.7s cubic-bezier(.68,-0.55,.27,1.55);
+}
+
+@keyframes popIn {
+  0% { transform: scale(0.7) translateY(60px); opacity: 0; }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+.animated-title {
+  font-weight: 700;
+  font-size: 2rem;
+  text-align: center;
+  margin-bottom: 1.5rem;
+  color: #6e8efb;
+  letter-spacing: 1px;
+}
+
+.animated-btn {
+  background: linear-gradient(90deg, #43cea2 0%, #185a9d 100%);
+  border: none;
+  color: #fff;
+  font-weight: 600;
+  border-radius: 8px;
+  width: 100%;
+  padding: 0.75rem;
+  margin-top: 1rem;
+  transition: background 0.3s, transform 0.2s;
+  box-shadow: 0 2px 8px rgba(67, 206, 162, 0.15);
+}
+.animated-btn:hover {
+  background: linear-gradient(90deg, #ffd200 0%, #f7971e 100%);
+  color: #185a9d;
+  transform: translateY(-2px) scale(1.03);
+}
+
+.animated-link {
+  color: #a777e3;
+  text-decoration: underline;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+.animated-link:hover {
+  color: #6e8efb;
+}
+
+.animated-input {
+  border-radius: 8px;
+  border: 1.5px solid #cddbef;
+  background: #eef9fe;
+  padding: 0.75rem 1.1rem;
+  margin-bottom: 1.1rem;
+  font-size: 1rem;
+  transition: border 0.2s, box-shadow 0.2s;
+  width: 100%;
+  box-sizing: border-box;
+  display: block;
+}
+.animated-input:focus {
+  border: 2px solid #43cea2;
+  outline: none;
+  box-shadow: 0 0 0 2px #43cea233;
+}
