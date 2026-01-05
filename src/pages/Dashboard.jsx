@@ -88,7 +88,7 @@ const Dashboard = () => {
                     </Row>
                 </>
             ) : (
-                <div className="text-center text-muted">Noo data available.</div>
+                <div className="text-center text-muted">No data available.</div>
             )}
         </div>
     );
