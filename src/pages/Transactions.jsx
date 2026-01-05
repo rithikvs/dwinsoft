@@ -22,7 +22,7 @@ const Transactions = () => {
   const [error, setError] = useState('');
 
   const canEdit = user && (user.role === 'Admin' || user.role === 'Accountant');
-  const canViewPayroll = user && user.role === 'HR';
+  const canView = user && (user.role === 'Admin' || user.role === 'Accountant' || user.role === 'HR');
 
   // Fetch transactions
   const fetchTransactions = async () => {
@@ -135,34 +135,36 @@ const Transactions = () => {
         </span>
       </div>
 
-      {/* Filter/Search */}
-      <form className="row g-2 mb-4" onSubmit={e => { e.preventDefault(); fetchTransactions(); }}>
-        <div className="col-md-2">
-          <select className="form-select" name="type" value={filter.type} onChange={handleFilterChange}>
-            <option value="">All Types</option>
-            <option value="Income">Income</option>
-            <option value="Expense">Expense</option>
-          </select>
-        </div>
-        <div className="col-md-2">
-          <select className="form-select" name="category" value={filter.category} onChange={handleFilterChange}>
-            <option value="">All Categories</option>
-            {categories.map(c => <option key={c} value={c}>{c}</option>)}
-          </select>
-        </div>
-        <div className="col-md-2">
-          <input type="date" className="form-control" name="startDate" value={filter.startDate} onChange={handleFilterChange} />
-        </div>
-        <div className="col-md-2">
-          <input type="date" className="form-control" name="endDate" value={filter.endDate} onChange={handleFilterChange} />
-        </div>
-        <div className="col-md-2">
-          <button className="btn btn-outline-primary w-100" type="submit">Filter</button>
-        </div>
-        <div className="col-md-2">
-          <button className="btn btn-outline-secondary w-100" type="button" onClick={() => setFilter({ type: '', category: '', startDate: '', endDate: '' })}>Reset</button>
-        </div>
-      </form>
+      {/* Filter/Search - visible to all who canView */}
+      {canView && (
+        <form className="row g-2 mb-4" onSubmit={e => { e.preventDefault(); fetchTransactions(); }}>
+          <div className="col-md-2">
+            <select className="form-select" name="type" value={filter.type} onChange={handleFilterChange}>
+              <option value="">All Types</option>
+              <option value="Income">Income</option>
+              <option value="Expense">Expense</option>
+            </select>
+          </div>
+          <div className="col-md-2">
+            <select className="form-select" name="category" value={filter.category} onChange={handleFilterChange}>
+              <option value="">All Categories</option>
+              {categories.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+          </div>
+          <div className="col-md-2">
+            <input type="date" className="form-control" name="startDate" value={filter.startDate} onChange={handleFilterChange} />
+          </div>
+          <div className="col-md-2">
+            <input type="date" className="form-control" name="endDate" value={filter.endDate} onChange={handleFilterChange} />
+          </div>
+          <div className="col-md-2">
+            <button className="btn btn-outline-primary w-100" type="submit">Filter</button>
+          </div>
+          <div className="col-md-2">
+            <button className="btn btn-outline-secondary w-100" type="button" onClick={() => setFilter({ type: '', category: '', startDate: '', endDate: '' })}>Reset</button>
+          </div>
+        </form>
+      )}
 
       {/* Add/Edit Form (Admin/Accountant only) */}
       {canEdit && (
@@ -198,48 +200,50 @@ const Transactions = () => {
         </div>
       )}
 
-      {/* Transactions Table */}
-      <div className="card p-3">
-        <div className="table-responsive">
-          <table className="table table-bordered align-middle">
-            <thead className="table-light">
-              <tr>
-                <th>Date</th>
-                <th>Description</th>
-                <th>Type</th>
-                <th>Category</th>
-                <th>Amount</th>
-                {canEdit && <th>Actions</th>}
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
-                <tr><td colSpan={canEdit ? 6 : 5} className="text-center">Loading...</td></tr>
-              ) : transactions.length === 0 ? (
-                <tr><td colSpan={canEdit ? 6 : 5} className="text-center text-muted">No transactions found</td></tr>
-              ) : (
-                transactions.map(t => (
-                  <tr key={t._id}>
-                    <td>{t.date ? t.date.slice(0, 10) : ''}</td>
-                    <td>{t.description}</td>
-                    <td>{t.type}</td>
-                    <td>{t.category}</td>
-                    <td className={t.type === 'Income' ? 'text-success' : 'text-danger'}>
-                      {t.type === 'Income' ? '+' : '-'}₹{t.amount.toLocaleString()}
-                    </td>
-                    {canEdit && (
-                      <td>
-                        <button className="btn btn-sm btn-primary me-2" onClick={() => handleEdit(t)}>Edit</button>
-                        <button className="btn btn-sm btn-danger" onClick={() => handleDelete(t._id)}>Delete</button>
+      {/* Transactions Table - visible to all who canView */}
+      {canView && (
+        <div className="card p-3">
+          <div className="table-responsive">
+            <table className="table table-bordered align-middle">
+              <thead className="table-light">
+                <tr>
+                  <th>Date</th>
+                  <th>Description</th>
+                  <th>Type</th>
+                  <th>Category</th>
+                  <th>Amount</th>
+                  {canEdit && <th>Actions</th>}
+                </tr>
+              </thead>
+              <tbody>
+                {loading ? (
+                  <tr><td colSpan={canEdit ? 6 : 5} className="text-center">Loading...</td></tr>
+                ) : transactions.length === 0 ? (
+                  <tr><td colSpan={canEdit ? 6 : 5} className="text-center text-muted">No transactions found</td></tr>
+                ) : (
+                  transactions.map(t => (
+                    <tr key={t._id}>
+                      <td>{t.date ? t.date.slice(0, 10) : ''}</td>
+                      <td>{t.description}</td>
+                      <td>{t.type}</td>
+                      <td>{t.category}</td>
+                      <td className={t.type === 'Income' ? 'text-success' : 'text-danger'}>
+                        {t.type === 'Income' ? '+' : '-'}₹{t.amount.toLocaleString()}
                       </td>
-                    )}
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                      {canEdit && (
+                        <td>
+                          <button className="btn btn-sm btn-primary me-2" onClick={() => handleEdit(t)}>Edit</button>
+                          <button className="btn btn-sm btn-danger" onClick={() => handleDelete(t._id)}>Delete</button>
+                        </td>
+                      )}
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
+      )}
       {error && <div className="text-danger mt-2">{error}</div>}
     </div>
   );
