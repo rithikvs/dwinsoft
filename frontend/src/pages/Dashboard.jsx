@@ -3,12 +3,14 @@ import React, { useContext, useEffect, useState } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { Card, Row, Col, Spinner, Button, ListGroup, Badge } from 'react-bootstrap';
 import { FaUser, FaMoneyBill, FaBell, FaClipboardList, FaPlus, FaExchangeAlt, FaUsers, FaCog } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 const Dashboard = () => {
     const { user } = useContext(AuthContext);
     const [stats, setStats] = useState(null);
     const [loading, setLoading] = useState(true);
+    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchStats = async () => {
@@ -104,16 +106,19 @@ const Dashboard = () => {
                                 <Card.Header as="h5">Quick Actions</Card.Header>
                                 <Card.Body>
                                     <div className="d-flex flex-wrap gap-3">
-                                        <Button variant="primary" className="d-flex align-items-center gap-2">
+                                        <Button variant="primary" className="d-flex align-items-center gap-2" onClick={() => navigate('/transactions')}>
                                             <FaPlus /> Add Transaction
                                         </Button>
-                                        <Button variant="success" className="d-flex align-items-center gap-2">
+                                        <Button variant="success" className="d-flex align-items-center gap-2" onClick={() => navigate('/transactions')}>
                                             <FaExchangeAlt /> View Transactions
                                         </Button>
-                                        <Button variant="info" className="d-flex align-items-center gap-2">
-                                            <FaUsers /> Manage Users
-                                        </Button>
-                                        <Button variant="secondary" className="d-flex align-items-center gap-2">
+                                        {/* Manage Users button only for Admin */}
+                                        {user?.role === 'Admin' && (
+                                            <Button variant="info" className="d-flex align-items-center gap-2" onClick={() => navigate('/admin')}>
+                                                <FaUsers /> Manage Users
+                                            </Button>
+                                        )}
+                                        <Button variant="secondary" className="d-flex align-items-center gap-2" onClick={() => navigate('/settings')}>
                                             <FaCog /> Settings
                                         </Button>
                                     </div>
