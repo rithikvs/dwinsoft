@@ -13,14 +13,23 @@ const Login = () => {
     const { email, password } = formData;
 
     const onChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
-
     const onSubmit = async (e) => {
         e.preventDefault();
         try {
-            await login(email, password);
-            navigate('/');
+            const res = await login(email, password);
+            // Redirect based on role
+            if (res.role === 'Admin') {
+                navigate('/admin');
+            } else if (res.role === 'HR') {
+                navigate('/hr');
+            } else if (res.role === 'Employee') {
+                navigate('/employee');
+            } else if (res.role === 'Accountant') {
+                navigate('/finance');
+            } else {
+                navigate('/');
+            }
         } catch (err) {
-            // Need to handle different error structures potentially
             const msg = err.response?.data?.message || 'Login failed';
             setError(msg);
         }
@@ -51,10 +60,7 @@ const Login = () => {
                     required
                 />
                 <button className="animated-btn" type="submit">Login</button>
-                <div className="mt-3 text-center">
-                    Don't have an account?{' '}
-                    <Link className="animated-link" to="/register">Register</Link>
-                </div>
+                {/* Registration link removed: only Admin can create users */}
             </form>
         </div>
     );

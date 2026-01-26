@@ -3,11 +3,11 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import Login from './pages/Login';
-import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import DashboardLayout from './components/layout/DashboardLayout';
 import ProtectedRoute from './components/ProtectedRoute';
 import AccessDenied from './pages/AccessDenied';
+import CreateUser from './pages/CreateUser';
 import Transactions from './pages/Transactions';
 import Invoices from './pages/Invoices';
 import Debts from './pages/Debts';
@@ -23,7 +23,6 @@ function App() {
         <AuthProvider>
           <Routes>
             <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
             <Route element={<DashboardLayout />}>
               <Route
                 path="/"
@@ -38,7 +37,19 @@ function App() {
                 path="/admin"
                 element={
                   <ProtectedRoute roles={['Admin']}>
-                    <div style={{ padding: '2rem' }}><h2>Admin Panel</h2><p>Full system access, user and role management.</p></div>
+                    <div style={{ padding: '2rem' }}>
+                      <h2>Admin Panel</h2>
+                      <p>Full system access, user and role management.</p>
+                      <a href="/admin/create-user" className="btn btn-primary mt-3">Create User</a>
+                    </div>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/create-user"
+                element={
+                  <ProtectedRoute roles={['Admin']}>
+                    <CreateUser />
                   </ProtectedRoute>
                 }
               />

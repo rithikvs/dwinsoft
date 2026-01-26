@@ -27,6 +27,8 @@ const DashboardLayout = () => {
         { to: '/hand-cash', label: 'Hand Cash', icon: <FaHandHoldingUsd />, roles: ['Admin','Accountant','HR'] },
         { to: '/recycle-bin', label: 'Recycle Bin', icon: <FaRecycle />, roles: ['Admin','Accountant','HR'] },
         { to: '/settings', label: 'Settings', icon: <FaCog />, roles: ['Admin','Accountant','HR','Employee'] },
+        // Admin-only: Create User
+        { to: '/admin/create-user', label: 'Create User', icon: <FaUserCircle />, roles: ['Admin'] },
     ];
     return (
         <div className="d-flex" style={{ height: '100vh', overflow: 'hidden', background: theme === 'dark' ? '#181c24' : undefined }}>
