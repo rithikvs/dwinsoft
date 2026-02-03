@@ -25,6 +25,31 @@ const Invoices = () => {
     fetchInvoices();
   }, []);
 
+  const handleViewInvoice = (invoiceId) => {
+    // Open PDF in new tab
+    window.open(`http://localhost:5000/api/invoices/view/${invoiceId}`, '_blank');
+  };
+
+  const handleDownloadInvoice = async (invoiceId, invoiceNumber) => {
+    try {
+      const response = await axios.get(`http://localhost:5000/api/invoices/download/${invoiceId}`, {
+        responseType: 'blob'
+      });
+      
+      // Create download link
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `Invoice_${invoiceNumber.replace(/\//g, '_')}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      alert('Failed to download invoice');
+    }
+  };
+
   return (
     <div>
       <h2>Invoices</h2>
@@ -50,6 +75,7 @@ const Invoices = () => {
                   <th>Status</th>
                   <th>Grand Total</th>
                   <th>Date</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -62,6 +88,24 @@ const Invoices = () => {
                     <td>{inv.paymentStatus}</td>
                     <td>{inv.grandTotal?.toLocaleString?.('en-IN', { style: 'currency', currency: 'INR' })}</td>
                     <td>{inv.invoiceDate ? new Date(inv.invoiceDate).toLocaleString() : ''}</td>
+                    <td>
+                      <div className="d-flex gap-2">
+                        <button
+                          className="btn btn-sm btn-outline-primary"
+                          onClick={() => handleViewInvoice(inv._id)}
+                          title="View Invoice"
+                        >
+                          <i className="bi bi-eye"></i> View
+                        </button>
+                        <button
+                          className="btn btn-sm btn-outline-success"
+                          onClick={() => handleDownloadInvoice(inv._id, inv.invoiceNumber)}
+                          title="Download Invoice"
+                        >
+                          <i className="bi bi-download"></i> Download
+                        </button>
+                      </div>
+                    </td>
                   </tr>
                 ))}
               </tbody>
