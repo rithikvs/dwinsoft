@@ -787,19 +787,6 @@ const Transactions = () => {
         </div>
       )
       {error && <div className="text-danger mt-2">{error}</div>}
-      {/* Dev debug panel: shows token/user and last error when running in dev mode */}
-      {import.meta.env.DEV && (
-        <div className="card mt-3 p-3">
-          <h6>Debug Info (dev only)</h6>
-          <div><strong>Token:</strong> {localStorage.getItem('token') ? 'present' : 'missing'}</div>
-          <div><strong>User:</strong> {user ? JSON.stringify(user) : 'null'}</div>
-          <div><strong>Last error:</strong> {error || 'none'}</div>
-          <div className="mt-2">
-            <button className="btn btn-sm btn-outline-secondary me-2" onClick={() => console.log('token', localStorage.getItem('token'))}>Log Token</button>
-            <button className="btn btn-sm btn-outline-secondary" onClick={() => navigator.clipboard?.writeText(localStorage.getItem('token') || '')}>Copy Token</button>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
