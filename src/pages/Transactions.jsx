@@ -2,8 +2,8 @@
 import React, { useEffect, useState, useContext } from 'react';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
-import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 const initialForm = {
   description: '',
@@ -24,7 +24,8 @@ const Transactions = () => {
   const [error, setError] = useState('');
 
   const canEdit = user && (user.role === 'Admin' || user.role === 'Accountant');
-  const canView = user && (user.role === 'Admin' || user.role === 'Accountant' || user.role === 'HR');
+  // Allow any authenticated user to view/download transactions/invoices
+  const canView = !!user;
 
   // Fetch transactions
   const fetchTransactions = async () => {
@@ -203,7 +204,8 @@ const Transactions = () => {
 
   // Download Invoice for a single transaction
   const downloadInvoice = (transaction) => {
-    const doc = new jsPDF();
+    try {
+      const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
     const invoiceNumber = generateInvoiceNumber();
     const invoiceDate = formatDate(new Date());
@@ -268,7 +270,7 @@ const Transactions = () => {
     doc.line(15, 95, pageWidth - 15, 95);
     
     // Transaction Details Table
-    doc.autoTable({
+    autoTable(doc, {
       startY: 105,
       head: [['S.No', 'Description', 'Category', 'HSN/SAC', 'Quantity', 'Rate', 'Amount']],
       body: [
@@ -306,7 +308,7 @@ const Transactions = () => {
     // GST Summary Table
     const summaryY = doc.lastAutoTable.finalY + 10;
     
-    doc.autoTable({
+    autoTable(doc, {
       startY: summaryY,
       body: [
         ['Subtotal (Before GST)', '', '', '', '', '', formatCurrency(baseAmount)],
@@ -383,9 +385,26 @@ const Transactions = () => {
     doc.text('For ' + companyDetails.name, pageWidth - 60, footerY - 15);
     doc.text('Authorized Signatory', pageWidth - 60, footerY - 8);
     
-    // Save the PDF
-    const fileName = `Invoice_${invoiceNumber.replace(/\//g, '-')}_${transaction.description?.replace(/[^a-zA-Z0-9]/g, '_') || 'Transaction'}.pdf`;
-    doc.save(fileName);
+      // Save the PDF (open in new tab + trigger download)
+      const fileName = `Invoice_${invoiceNumber.replace(/\//g, '-')}_${(transaction.description || 'Transaction').replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
+      const blob = doc.output('blob');
+      const url = URL.createObjectURL(blob);
+      try {
+        window.open(url, '_blank');
+      } catch (e) {
+        // ignore popup blockers
+      }
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 10000);
+    } catch (err) {
+      console.error('Invoice generation failed', err);
+      setError('Invoice generation failed: ' + (err?.message || err));
+    }
   };
 
   // Download All Transactions as a consolidated invoice/report
@@ -394,8 +413,8 @@ const Transactions = () => {
       alert('No transactions to download!');
       return;
     }
-
-    const doc = new jsPDF();
+    try {
+      const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
     const invoiceNumber = generateInvoiceNumber();
     const invoiceDate = formatDate(new Date());
@@ -510,7 +529,7 @@ const Transactions = () => {
       t.type === 'Expense' ? formatCurrency(t.amount) : '-'
     ]);
     
-    doc.autoTable({
+    autoTable(doc, {
       startY: 130,
       head: [['#', 'Date', 'Description', 'Category', 'Type', 'Income', 'Expense']],
       body: tableData,
@@ -551,7 +570,7 @@ const Transactions = () => {
     doc.setFontSize(11);
     doc.text('GST Summary (on Income Transactions)', 15, currentY);
     
-    doc.autoTable({
+    autoTable(doc, {
       startY: currentY + 5,
       body: [
         ['Total Income (Inclusive of GST)', formatCurrency(totalIncome)],
@@ -604,8 +623,26 @@ const Transactions = () => {
     doc.text('For ' + companyDetails.name, pageWidth - 60, footerY - 15);
     doc.text('Authorized Signatory', pageWidth - 60, footerY - 8);
     
-    // Save
-    doc.save(`Transaction_Statement_${invoiceNumber.replace(/\//g, '-')}.pdf`);
+      // Save (open in new tab + trigger download)
+      const statementFile = `Transaction_Statement_${invoiceNumber.replace(/\//g, '-')}.pdf`;
+      const statementBlob = doc.output('blob');
+      const statementUrl = URL.createObjectURL(statementBlob);
+      try {
+        window.open(statementUrl, '_blank');
+      } catch (e) {
+        // ignore popup blockers
+      }
+      const link = document.createElement('a');
+      link.href = statementUrl;
+      link.download = statementFile;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(statementUrl), 10000);
+    } catch (err) {
+      console.error('Transaction statement generation failed', err);
+      setError('Statement generation failed: ' + (err?.message || err));
+    }
   };
 
   return (
@@ -618,7 +655,7 @@ const Transactions = () => {
             ₹{balance.toLocaleString()}
           </span>
         </div>
-        {canView && transactions.length > 0 && (
+        {transactions.length > 0 && (
           <button 
             className="btn btn-outline-success" 
             onClick={downloadAllTransactionsInvoice}
@@ -630,7 +667,7 @@ const Transactions = () => {
         )}
       </div>
 
-      {/* Filter/Search - visible to all who canView */}
+      {/* Filter/Search - visible to authenticated users only */}
       {canView && (
         <form className="row g-2 mb-4" onSubmit={e => { e.preventDefault(); fetchTransactions(); }}>
           <div className="col-md-2">
@@ -695,8 +732,8 @@ const Transactions = () => {
         </div>
       )}
 
-      {/* Transactions Table - visible to all who canView */}
-      {canView && (
+      {/* Transactions Table - visible to everyone (invoice downloads are available to all) */}
+      (
         <div className="card p-3">
           <div className="table-responsive">
             <table className="table table-bordered align-middle">
@@ -748,8 +785,21 @@ const Transactions = () => {
             </table>
           </div>
         </div>
-      )}
+      )
       {error && <div className="text-danger mt-2">{error}</div>}
+      {/* Dev debug panel: shows token/user and last error when running in dev mode */}
+      {import.meta.env.DEV && (
+        <div className="card mt-3 p-3">
+          <h6>Debug Info (dev only)</h6>
+          <div><strong>Token:</strong> {localStorage.getItem('token') ? 'present' : 'missing'}</div>
+          <div><strong>User:</strong> {user ? JSON.stringify(user) : 'null'}</div>
+          <div><strong>Last error:</strong> {error || 'none'}</div>
+          <div className="mt-2">
+            <button className="btn btn-sm btn-outline-secondary me-2" onClick={() => console.log('token', localStorage.getItem('token'))}>Log Token</button>
+            <button className="btn btn-sm btn-outline-secondary" onClick={() => navigator.clipboard?.writeText(localStorage.getItem('token') || '')}>Copy Token</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
