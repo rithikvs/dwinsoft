@@ -3,6 +3,8 @@ const User = require('../models/User');
 
 const authenticate = async (req, res, next) => {
     let token;
+    console.log(`[Auth] Request: ${req.method} ${req.originalUrl}`);
+    console.log(`[Auth] Header: ${req.headers.authorization ? 'Present' : 'Missing'}`);
 
     if (
         req.headers.authorization &&
@@ -10,19 +12,16 @@ const authenticate = async (req, res, next) => {
     ) {
         try {
             token = req.headers.authorization.split(' ')[1];
-
             const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
             req.user = await User.findById(decoded.id).select('-password');
-
+            console.log(`[Auth] User found: ${req.user ? req.user.role : 'None'}`);
             next();
         } catch (error) {
-            console.error(error);
+            console.error('[Auth] Token verification failed:', error.message);
             res.status(401).json({ message: 'Not authorized, token failed' });
         }
-    }
-
-    if (!token) {
+    } else {
+        console.log('[Auth] No Bearer token found');
         res.status(401).json({ message: 'Not authorized, no token' });
     }
 };

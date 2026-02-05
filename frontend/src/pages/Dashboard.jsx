@@ -1,161 +1,157 @@
-
-import React, { useContext, useEffect, useState } from 'react';
-import { AuthContext } from '../context/AuthContext';
-import { Card, Row, Col, Spinner, Button, ListGroup, Badge } from 'react-bootstrap';
-import { FaUser, FaMoneyBill, FaBell, FaClipboardList, FaPlus, FaExchangeAlt, FaUsers, FaCog } from 'react-icons/fa';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useState, useContext } from 'react';
 import axios from 'axios';
+import { AuthContext } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 const Dashboard = () => {
     const { user } = useContext(AuthContext);
-    const [stats, setStats] = useState(null);
+    const [stats, setStats] = useState({
+        income: 0,
+        expense: 0,
+        balance: 0,
+        transactionCount: 0
+    });
+    const [recentTransactions, setRecentTransactions] = useState([]);
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
 
     useEffect(() => {
-        const fetchStats = async () => {
+        const fetchDashboardData = async () => {
             try {
-                // Replace with your backend API endpoints for real data
-                const [usersRes, revenueRes, approvalsRes, alertsRes] = await Promise.all([
-                    axios.get('http://localhost:5000/api/stats/users'),
-                    axios.get('http://localhost:5000/api/stats/revenue'),
-                    axios.get('http://localhost:5000/api/stats/pending-approvals'),
-                    axios.get('http://localhost:5000/api/stats/system-alerts'),
-                ]);
-                setStats({
-                    totalUsers: usersRes.data.count,
-                    revenue: revenueRes.data.amount,
-                    pendingApprovals: approvalsRes.data.count,
-                    systemAlerts: alertsRes.data.count,
+                setLoading(true);
+                // Fetch all transactions to calculate stats
+                // faster would be a specific stats endpoint, but this ensures consistency with Transactions page logic
+                const res = await axios.get('http://localhost:5000/api/transactions');
+                const transactions = res.data;
+
+                let income = 0;
+                let expense = 0;
+
+                transactions.forEach(t => {
+                    if (t.type === 'Income') income += t.amount;
+                    else if (t.type === 'Expense') expense += t.amount;
                 });
+
+                setStats({
+                    income,
+                    expense,
+                    balance: income - expense,
+                    transactionCount: transactions.length
+                });
+
+                // Get last 5 transactions for preview
+                setRecentTransactions(transactions.slice(0, 5));
             } catch (err) {
-                setStats(null);
+                console.error('Error fetching dashboard data:', err);
             } finally {
                 setLoading(false);
             }
         };
-        fetchStats();
+
+        fetchDashboardData();
     }, []);
 
-    const DashboardCard = ({ title, value, color }) => (
-        <Card className={`text-white bg-${color} mb-3 shadow-sm`}>
-            <Card.Header>{title}</Card.Header>
-            <Card.Body>
-                <Card.Title style={{ fontSize: '2rem' }}>{value}</Card.Title>
-            </Card.Body>
-        </Card>
-    );
+    const formatCurrency = (amount) => {
+        return new Intl.NumberFormat('en-IN', {
+            style: 'currency',
+            currency: 'INR',
+            minimumFractionDigits: 2
+        }).format(amount);
+    };
+
+    if (loading) {
+        return <div className="text-center mt-5">Loading Dashboard...</div>;
+    }
 
     return (
-        <div className="container-fluid py-4">
-            <h2 className="mb-1">Welcome back, {user?.username}</h2>
-            <div className="mb-4 text-muted" style={{ fontSize: '1.1rem' }}>
-                Here’s a quick overview of your system today.
+        <div className="container-fluid">
+            <h2 className="mb-4">Dashboard</h2>
+
+            {/* Welcome Section */}
+            <div className="alert alert-primary mb-4" role="alert">
+                <h4 className="alert-heading">Welcome back, {user?.name || 'User'}!</h4>
+                <p className="mb-0">Here's an overview of your financial status.</p>
             </div>
 
-            {/* Summary Cards */}
-            {loading ? (
-                <div className="d-flex justify-content-center align-items-center" style={{ minHeight: 200 }}>
-                    <Spinner animation="border" />
+            {/* Stats Cards */}
+            <div className="row g-4 mb-4">
+                <div className="col-md-4">
+                    <div className="card text-white bg-success h-100 shadow-sm">
+                        <div className="card-body">
+                            <h5 className="card-title">Total Income</h5>
+                            <h2 className="card-text">{formatCurrency(stats.income)}</h2>
+                        </div>
+                    </div>
                 </div>
-            ) : stats ? (
-                <>
-                    <Row className="g-3 mb-4">
-                        <Col md={3} sm={6} xs={12}>
-                            <Card className="shadow-sm text-center">
-                                <Card.Body>
-                                    <FaUser size={32} className="mb-2 text-primary" />
-                                    <div className="fw-bold">Total Users</div>
-                                    <div style={{ fontSize: '1.7rem' }}>{stats.totalUsers}</div>
-                                </Card.Body>
-                            </Card>
-                        </Col>
-                        <Col md={3} sm={6} xs={12}>
-                            <Card className="shadow-sm text-center">
-                                <Card.Body>
-                                    <FaMoneyBill size={32} className="mb-2 text-success" />
-                                    <div className="fw-bold">Revenue</div>
-                                    <div style={{ fontSize: '1.7rem' }}>${stats.revenue?.toLocaleString()}</div>
-                                </Card.Body>
-                            </Card>
-                        </Col>
-                        <Col md={3} sm={6} xs={12}>
-                            <Card className="shadow-sm text-center">
-                                <Card.Body>
-                                    <FaClipboardList size={32} className="mb-2 text-warning" />
-                                    <div className="fw-bold">Pending Approvals</div>
-                                    <div style={{ fontSize: '1.7rem' }}>{stats.pendingApprovals}</div>
-                                </Card.Body>
-                            </Card>
-                        </Col>
-                        <Col md={3} sm={6} xs={12}>
-                            <Card className="shadow-sm text-center">
-                                <Card.Body>
-                                    <FaBell size={32} className="mb-2 text-danger" />
-                                    <div className="fw-bold">System Alerts</div>
-                                    <div style={{ fontSize: '1.7rem' }}>{stats.systemAlerts}</div>
-                                </Card.Body>
-                            </Card>
-                        </Col>
-                    </Row>
+                <div className="col-md-4">
+                    <div className="card text-white bg-danger h-100 shadow-sm">
+                        <div className="card-body">
+                            <h5 className="card-title">Total Expenses</h5>
+                            <h2 className="card-text">{formatCurrency(stats.expense)}</h2>
+                        </div>
+                    </div>
+                </div>
+                <div className="col-md-4">
+                    <div className="card text-white bg-primary h-100 shadow-sm">
+                        <div className="card-body">
+                            <h5 className="card-title">Net Balance</h5>
+                            <h2 className="card-text">{formatCurrency(stats.balance)}</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-                    {/* Quick Actions */}
-                    <Row className="mb-4">
-                        <Col md={12}>
-                            <Card className="shadow-sm">
-                                <Card.Header as="h5">Quick Actions</Card.Header>
-                                <Card.Body>
-                                    <div className="d-flex flex-wrap gap-3">
-                                        <Button variant="primary" className="d-flex align-items-center gap-2" onClick={() => navigate('/transactions')}>
-                                            <FaPlus /> Add Transaction
-                                        </Button>
-                                        <Button variant="success" className="d-flex align-items-center gap-2" onClick={() => navigate('/transactions')}>
-                                            <FaExchangeAlt /> View Transactions
-                                        </Button>
-                                        {/* Manage Users button only for Admin */}
-                                        {user?.role === 'Admin' && (
-                                            <Button variant="info" className="d-flex align-items-center gap-2" onClick={() => navigate('/admin')}>
-                                                <FaUsers /> Manage Users
-                                            </Button>
-                                        )}
-                                        <Button variant="secondary" className="d-flex align-items-center gap-2" onClick={() => navigate('/settings')}>
-                                            <FaCog /> Settings
-                                        </Button>
-                                    </div>
-                                </Card.Body>
-                            </Card>
-                        </Col>
-                    </Row>
-
-                    {/* Recent Activity */}
-                    <Row>
-                        <Col md={7} className="mb-4">
-                            <Card className="shadow-sm h-100">
-                                <Card.Header as="h5">Recent Activity</Card.Header>
-                                <div className="text-muted p-3">No recent activity to display.</div>
-                            </Card>
-                        </Col>
-                        <Col md={5} className="mb-4">
-                            <Card className="shadow-sm h-100">
-                                <Card.Header as="h5">
-                                    {user?.role === 'Admin' ? 'System Overview' :
-                                        user?.role === 'Accountant' ? 'Financial Reports' :
-                                            user?.role === 'HR' ? 'Employee Stats' : 'Overview'}
-                                </Card.Header>
-                                <Card.Body>
-                                    <Card.Text>
-                                        {user?.role === 'Admin' && <p>You have full access to system settings, user management, and logs.</p>}
-                                        {user?.role === 'Accountant' && <p>View latest transactions, generate profit/loss reports, and manage payroll.</p>}
-                                        {user?.role === 'HR' && <p>Manage employee records, recruitment pipelines, and attendance.</p>}
-                                    </Card.Text>
-                                </Card.Body>
-                            </Card>
-                        </Col>
-                    </Row>
-                </>
-            ) : (
-                <div className="text-center text-muted">No data available.</div>
-            )}
+            {/* Recent Activity Section */}
+            <div className="row">
+                <div className="col-12">
+                    <div className="card shadow-sm">
+                        <div className="card-header bg-white d-flex justify-content-between align-items-center">
+                            <h5 className="mb-0">Recent Transactions</h5>
+                            <button className="btn btn-sm btn-outline-primary" onClick={() => navigate('/transactions')}>
+                                View All
+                            </button>
+                        </div>
+                        <div className="table-responsive">
+                            <table className="table table-hover mb-0 align-middle">
+                                <thead className="table-light">
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Description</th>
+                                        <th>Category</th>
+                                        <th>Type</th>
+                                        <th className="text-end">Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {recentTransactions.length > 0 ? (
+                                        recentTransactions.map(t => (
+                                            <tr key={t._id}>
+                                                <td>{new Date(t.date).toLocaleDateString('en-IN')}</td>
+                                                <td>{t.description}</td>
+                                                <td>
+                                                    <span className="badge bg-secondary">{t.category}</span>
+                                                </td>
+                                                <td>
+                                                    <span className={`badge ${t.type === 'Income' ? 'bg-success' : 'bg-danger'}`}>
+                                                        {t.type}
+                                                    </span>
+                                                </td>
+                                                <td className={`text-end fw-bold ${t.type === 'Income' ? 'text-success' : 'text-danger'}`}>
+                                                    {t.type === 'Income' ? '+' : '-'}{formatCurrency(t.amount)}
+                                                </td>
+                                            </tr>
+                                        ))
+                                    ) : (
+                                        <tr>
+                                            <td colspan="5" className="text-center py-3 text-muted">No recent transactions found.</td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     );
 };

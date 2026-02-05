@@ -1,15 +1,31 @@
-
 const mongoose = require('mongoose');
 
 const TransactionSchema = new mongoose.Schema({
-  user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  order: { type: mongoose.Schema.Types.ObjectId, ref: 'Order', required: true },
-  amount: { type: Number, required: true },
-  paymentMethod: { type: String, required: true },
-  paymentStatus: { type: String, enum: ['Success', 'Failed', 'Pending'], default: 'Success' },
-  transactionDate: { type: Date, default: Date.now },
-  description: { type: String },
+  description: {
+    type: String,
+    required: [true, 'Please add a description']
+  },
+  amount: {
+    type: Number,
+    required: [true, 'Please add a positive or negative number']
+  },
+  type: {
+    type: String,
+    enum: ['Income', 'Expense'],
+    required: true
+  },
+  category: {
+    type: String,
+    required: true
+  },
+  date: {
+    type: Date,
+    default: Date.now
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
+  }
 });
 
 module.exports = mongoose.model('Transaction', TransactionSchema);
-        required: true

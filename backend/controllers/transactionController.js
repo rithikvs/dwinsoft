@@ -19,16 +19,22 @@ exports.getTransactions = async (req, res) => {
 
 // Add transaction (Admin/Accountant only)
 exports.addTransaction = async (req, res) => {
+    console.log('Adding transaction:', req.body);
+    console.log('User role:', req.user ? req.user.role : 'No user');
+
     if (!(req.user.role === 'Admin' || req.user.role === 'Accountant')) {
+        console.log('Access denied for role:', req.user.role);
         return res.status(403).json({ message: 'Access denied' });
     }
     try {
         const { description, amount, type, category, date } = req.body;
         const transaction = new Transaction({ description, amount, type, category, date });
         await transaction.save();
+        console.log('Transaction saved:', transaction);
         res.status(201).json(transaction);
     } catch (err) {
-        res.status(500).json({ message: 'Server error' });
+        console.error('Error in addTransaction:', err);
+        res.status(500).json({ message: 'Server error', error: err.message });
     }
 };
 
