@@ -2,6 +2,8 @@
 import React, { useEffect, useState, useContext } from 'react';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
+import PageHeader from '../components/ui/PageHeader';
+import SectionCard from '../components/ui/SectionCard';
 
 const RecycleBin = () => {
   const { user } = useContext(AuthContext);
@@ -26,47 +28,52 @@ const RecycleBin = () => {
   }, []);
 
   return (
-    <div>
-      <h2>Deleted Records</h2>
-      <div className="card p-4 mt-4">
-        <div className="d-flex align-items-center mb-3">
-          <span className="fw-bold fs-5">Recycle Bin</span>
-        </div>
-        {loading ? (
-          <div className="text-center text-muted">Loading...</div>
-        ) : error ? (
-          <div className="text-danger text-center">{error}</div>
-        ) : deletedTransactions.length === 0 ? (
-          <div className="text-center text-muted">Recycle bin is empty</div>
-        ) : (
-          <div className="table-responsive">
-            <table className="table table-bordered align-middle">
-              <thead className="table-light">
-                <tr>
-                  <th>Date Deleted</th>
-                  <th>Description</th>
-                  <th>Type</th>
-                  <th>Category</th>
-                  <th>Amount</th>
-                  <th>Original Date</th>
-                </tr>
-              </thead>
-              <tbody>
-                {deletedTransactions.map(t => (
-                  <tr key={t._id}>
-                    <td>{t.deletedAt ? new Date(t.deletedAt).toLocaleString() : ''}</td>
-                    <td>{t.description}</td>
-                    <td>{t.type}</td>
-                    <td>{t.category}</td>
-                    <td>₹{t.amount?.toLocaleString()}</td>
-                    <td>{t.date ? new Date(t.date).toLocaleDateString() : ''}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+    <div className="space-y-8">
+      <PageHeader title="Recycle Bin" subtitle="Deleted transactions retained for audit visibility." />
+      <SectionCard>
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-lg font-semibold text-slate-900">Deleted Records</h3>
+            <p className="text-sm text-slate-500">Recoverable history of removed transactions.</p>
           </div>
-        )}
-      </div>
+        </div>
+        <div className="mt-4">
+          {loading ? (
+            <div className="text-center text-sm text-slate-500">Loading...</div>
+          ) : error ? (
+            <div className="text-center text-sm text-rose-600">{error}</div>
+          ) : deletedTransactions.length === 0 ? (
+            <div className="text-center text-sm text-slate-400">Recycle bin is empty</div>
+          ) : (
+            <div className="overflow-auto">
+              <table className="table-base">
+                <thead>
+                  <tr>
+                    <th>Date Deleted</th>
+                    <th>Description</th>
+                    <th>Type</th>
+                    <th>Category</th>
+                    <th>Amount</th>
+                    <th>Original Date</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {deletedTransactions.map(t => (
+                    <tr key={t._id}>
+                      <td>{t.deletedAt ? new Date(t.deletedAt).toLocaleString() : ''}</td>
+                      <td className="font-semibold text-slate-900">{t.description}</td>
+                      <td>{t.type}</td>
+                      <td>{t.category}</td>
+                      <td>₹{t.amount?.toLocaleString()}</td>
+                      <td>{t.date ? new Date(t.date).toLocaleDateString() : ''}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </SectionCard>
     </div>
   );
 };

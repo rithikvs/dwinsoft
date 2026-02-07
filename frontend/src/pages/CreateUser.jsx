@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import PageHeader from '../components/ui/PageHeader';
+import SectionCard from '../components/ui/SectionCard';
 
 const CreateUser = () => {
   const [formData, setFormData] = useState({
@@ -58,61 +60,89 @@ const CreateUser = () => {
   };
 
   return (
-    <div className="container" style={{ maxWidth: 400, margin: '2rem auto' }}>
-      <h2>Create User</h2>
-      {error && <div className="alert alert-danger">{error}</div>}
-      {success && <div className="alert alert-success">{success}</div>}
-      <form onSubmit={onSubmit} autoComplete="off">
-        <div className="mb-3">
-          <label className="form-label">Username</label>
-          <input
-            type="text"
-            className="form-control"
-            name="username"
-            value={username}
-            onChange={onChange}
-            required
-            placeholder="Enter username (e.g. rithik)"
-          />
+    <div className="space-y-8">
+      <PageHeader
+        title="Create User"
+        subtitle="Provision new HR or Employee accounts with official credentials."
+      />
+
+      <SectionCard className="max-w-3xl">
+        {error && (
+          <div className="mb-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-600">
+            {error}
+          </div>
+        )}
+        {success && (
+          <div className="mb-4 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-600">
+            {success}
+          </div>
+        )}
+
+        <form onSubmit={onSubmit} autoComplete="off" className="space-y-6">
+          <div className="grid gap-5 md:grid-cols-2">
+            <div>
+              <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">Username</label>
+              <input
+                type="text"
+                className="input-field mt-2"
+                name="username"
+                value={username}
+                onChange={onChange}
+                required
+                placeholder="Enter username (e.g. rithik)"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">Official Email</label>
+              <input
+                type="email"
+                className="input-field mt-2"
+                name="email"
+                value={email}
+                readOnly
+                placeholder="user@dwinsoft.com"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">Password</label>
+              <input
+                type="password"
+                className="input-field mt-2"
+                name="password"
+                value={password}
+                onChange={onChange}
+                required
+              />
+            </div>
+            <div>
+              <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">Role</label>
+              <select
+                className="select-field mt-2"
+                name="role"
+                value={role}
+                onChange={onChange}
+              >
+                <option value="HR">HR</option>
+                <option value="Employee">Employee</option>
+              </select>
+            </div>
+          </div>
+
+          <button className="btn-primary w-full" type="submit" disabled={loading}>
+            {loading ? 'Creating...' : 'Create User'}
+          </button>
+        </form>
+      </SectionCard>
+
+      <SectionCard>
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-lg font-semibold text-slate-900">All Users</h3>
+            <p className="text-sm text-slate-500">Overview of existing accounts in the system.</p>
+          </div>
         </div>
-        <div className="mb-3">
-          <label className="form-label">Official Email</label>
-          <input
-            type="email"
-            className="form-control"
-            name="email"
-            value={email}
-            readOnly
-            placeholder="user@dwinsoft.com"
-          />
-        </div>
-        <div className="mb-3">
-          <label className="form-label">Password</label>
-          <input
-            type="password"
-            className="form-control"
-            name="password"
-            value={password}
-            onChange={onChange}
-            required
-          />
-        </div>
-        <div className="mb-3">
-          <label className="form-label">Role</label>
-          <select
-            className="form-select"
-            name="role"
-            value={role}
-            onChange={onChange}
-          >
-            <option value="HR">HR</option>
-            <option value="Employee">Employee</option>
-          </select>
-        </div>
-        <hr />
-        <h4>All Users</h4>
-        <div style={{ maxHeight: 300, overflowY: 'auto' }}>
-          <table className="table table-bordered table-sm">
+        <div className="mt-4 max-h-72 overflow-auto">
+          <table className="table-base">
             <thead>
               <tr>
                 <th>Username</th>
@@ -123,7 +153,7 @@ const CreateUser = () => {
             <tbody>
               {users.map(u => (
                 <tr key={u._id}>
-                  <td>{u.username}</td>
+                  <td className="font-semibold text-slate-900">{u.username}</td>
                   <td>{u.email}</td>
                   <td>{u.role}</td>
                 </tr>
@@ -131,10 +161,7 @@ const CreateUser = () => {
             </tbody>
           </table>
         </div>
-        <button className="btn btn-primary w-100" type="submit" disabled={loading}>
-          {loading ? 'Creating...' : 'Create User'}
-        </button>
-      </form>
+      </SectionCard>
     </div>
   );
 };

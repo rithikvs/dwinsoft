@@ -4,27 +4,76 @@ import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import {
+  FiPlus, FiEdit2, FiTrash2, FiDownload, FiFilter, FiX,
+  FiArrowUpRight, FiArrowDownLeft, FiDollarSign, FiTrendingUp,
+  FiTrendingDown, FiCreditCard, FiCalendar, FiSearch, FiRefreshCw,
+  FiFileText, FiChevronDown, FiChevronUp, FiActivity, FiLayers
+} from 'react-icons/fi';
 
 const initialForm = {
   description: '',
   amount: '',
   type: 'Income',
   category: '',
+  paymentMethod: 'Bank Account',
+  bankAccountId: '',
+  handCashId: '',
   date: new Date().toISOString().slice(0, 10),
+};
+
+const initialHandCashForm = {
+  holder: '',
+  amount: '',
+  description: '',
+};
+
+const initialBankAccountForm = {
+  accountNumber: '',
+  accountHolder: '',
+  bankName: '',
+  branch: '',
+  balance: '',
 };
 
 const Transactions = () => {
   const { user } = useContext(AuthContext);
   const [transactions, setTransactions] = useState([]);
+  const [bankAccounts, setBankAccounts] = useState([]);
+  const [handCashRecords, setHandCashRecords] = useState([]);
   const [form, setForm] = useState(initialForm);
   const [editingId, setEditingId] = useState(null);
-  const [filter, setFilter] = useState({ type: '', category: '', startDate: '', endDate: '' });
+  const [filter, setFilter] = useState({ type: '', category: '', startDate: '', endDate: '', paymentMethod: '' });
   const [balance, setBalance] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  
+  // Form toggle states
+  const [showHandCashForm, setShowHandCashForm] = useState(false);
+  const [showBankAccountForm, setShowBankAccountForm] = useState(false);
+  const [handCashForm, setHandCashForm] = useState(initialHandCashForm);
+  const [bankAccountForm, setBankAccountForm] = useState(initialBankAccountForm);
+  const [formLoading, setFormLoading] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
 
   const canEdit = user && (user.role === 'Admin' || user.role === 'Accountant');
   const canView = !!user;
+
+  // Fetch bank accounts and hand cash
+  const fetchPaymentMethods = async () => {
+    try {
+      const [bankRes, cashRes] = await Promise.all([
+        axios.get('http://localhost:5000/api/bank-accounts'),
+        axios.get('http://localhost:5000/api/hand-cash')
+      ]);
+      setBankAccounts(bankRes.data);
+      setHandCashRecords(cashRes.data);
+    } catch (err) {
+      console.error('Error fetching payment methods:', err);
+    }
+  };
 
   // Fetch transactions
   const fetchTransactions = async () => {
@@ -32,10 +81,11 @@ const Transactions = () => {
     setError('');
     try {
       let url = 'http://localhost:5000/api/transactions';
-      if (filter.type || filter.category || filter.startDate || filter.endDate) {
+      if (filter.type || filter.category || filter.startDate || filter.endDate || filter.paymentMethod) {
         const params = [];
         if (filter.type) params.push(`type=${filter.type}`);
         if (filter.category) params.push(`category=${filter.category}`);
+        if (filter.paymentMethod) params.push(`paymentMethod=${filter.paymentMethod}`);
         if (filter.startDate) params.push(`startDate=${filter.startDate}`);
         if (filter.endDate) params.push(`endDate=${filter.endDate}`);
         url += `/search/filter?${params.join('&')}`;
@@ -49,6 +99,52 @@ const Transactions = () => {
     }
   };
 
+  // Handle Hand Cash Form Submission
+  const handleHandCashSubmit = async (e) => {
+    e.preventDefault();
+    setFormLoading(true);
+    try {
+      await axios.post('http://localhost:5000/api/hand-cash', {
+        holder: handCashForm.holder,
+        amount: Number(handCashForm.amount),
+        description: handCashForm.description
+      });
+      setSuccess('Hand Cash record created successfully!');
+      setHandCashForm(initialHandCashForm);
+      setShowHandCashForm(false);
+      fetchPaymentMethods();
+      setTimeout(() => setSuccess(''), 3000);
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to create hand cash record');
+    } finally {
+      setFormLoading(false);
+    }
+  };
+
+  // Handle Bank Account Form Submission
+  const handleBankAccountSubmit = async (e) => {
+    e.preventDefault();
+    setFormLoading(true);
+    try {
+      await axios.post('http://localhost:5000/api/bank-accounts', {
+        accountNumber: bankAccountForm.accountNumber,
+        accountHolder: bankAccountForm.accountHolder,
+        bankName: bankAccountForm.bankName,
+        branch: bankAccountForm.branch,
+        balance: Number(bankAccountForm.balance)
+      });
+      setSuccess('Bank Account created successfully!');
+      setBankAccountForm(initialBankAccountForm);
+      setShowBankAccountForm(false);
+      fetchPaymentMethods();
+      setTimeout(() => setSuccess(''), 3000);
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to create bank account');
+    } finally {
+      setFormLoading(false);
+    }
+  };
+
   useEffect(() => {
     let bal = 0;
     transactions.forEach(t => {
@@ -59,27 +155,52 @@ const Transactions = () => {
   }, [transactions]);
 
   useEffect(() => {
+    fetchPaymentMethods();
     fetchTransactions();
     // eslint-disable-next-line
   }, [filter]);
 
   const handleChange = e => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setForm({ ...form, [name]: value });
+    // Reset related IDs when changing payment method
+    if (name === 'paymentMethod') {
+      setForm({
+        ...form,
+        [name]: value,
+        bankAccountId: '',
+        handCashId: ''
+      });
+    }
+  };
+
+  const handleFilterChange = e => {
+    setFilter({ ...filter, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async e => {
     e.preventDefault();
     setError('');
+    setSuccess('');
+
     try {
-      const payload = { ...form, amount: Number(form.amount) };
+      const payload = { 
+        ...form, 
+        amount: Number(form.amount),
+        paymentMethod: form.paymentMethod
+      };
+      
       if (editingId) {
         await axios.put(`http://localhost:5000/api/transactions/${editingId}`, payload);
+        setSuccess('Transaction updated successfully');
       } else {
         await axios.post('http://localhost:5000/api/transactions', payload);
+        setSuccess('Transaction added successfully');
       }
       setForm(initialForm);
       setEditingId(null);
       fetchTransactions();
+      setTimeout(() => setSuccess(''), 3000);
     } catch (err) {
       console.error(err);
       setError(err.response?.data?.message || err.response?.data?.error || 'Failed to save transaction');
@@ -92,6 +213,9 @@ const Transactions = () => {
       amount: t.amount,
       type: t.type,
       category: t.category,
+      paymentMethod: t.paymentMethod || 'Bank Account',
+      bankAccountId: t.bankAccountId ? t.bankAccountId._id || t.bankAccountId : '',
+      handCashId: t.handCashId ? t.handCashId._id || t.handCashId : '',
       date: t.date ? t.date.slice(0, 10) : '',
     });
     setEditingId(t._id);
@@ -101,19 +225,19 @@ const Transactions = () => {
     if (!window.confirm('Delete this transaction?')) return;
     try {
       await axios.delete(`http://localhost:5000/api/transactions/${id}`);
+      setSuccess('Transaction deleted successfully');
       fetchTransactions();
+      setTimeout(() => setSuccess(''), 3000);
     } catch (err) {
       setError('Failed to delete transaction');
     }
   };
 
-  const handleFilterChange = e => {
-    setFilter({ ...filter, [e.target.name]: e.target.value });
-  };
-
   const handleCancel = () => {
     setForm(initialForm);
     setEditingId(null);
+    setError('');
+    setSuccess('');
   };
 
   const categories = [
@@ -147,6 +271,13 @@ const Transactions = () => {
       month: 'long',
       year: 'numeric'
     });
+  };
+
+  const getPaymentMethodLabel = (transaction) => {
+    if (transaction?.paymentMethod) return transaction.paymentMethod;
+    if (transaction?.bankAccountId) return 'Bank Account';
+    if (transaction?.handCashId) return 'Hand Cash';
+    return '';
   };
 
   const generateInvoiceNumber = () => {
@@ -620,143 +751,820 @@ const Transactions = () => {
     }
   };
 
+  // Computed stats for summary cards
+  const totalIncome = transactions.filter(t => t.type === 'Income').reduce((s, t) => s + t.amount, 0);
+  const totalExpense = transactions.filter(t => t.type === 'Expense').reduce((s, t) => s + t.amount, 0);
+
+  // Reusable style objects
+  const thStyle = { color: '#94a3b8', fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', padding: '0.85rem 1.15rem', border: 'none', whiteSpace: 'nowrap' };
+  const tdStyle = { padding: '0.85rem 1.15rem', color: '#475569', border: 'none', verticalAlign: 'middle' };
+  const modalInputStyle = { borderRadius: '0.65rem', border: '2px solid #e2e8f0', padding: '0.6rem 0.85rem', fontSize: '0.9rem', transition: 'all .2s ease', outline: 'none', background: '#f8fafc' };
+  const filterInputStyle = { borderRadius: '0.5rem', border: '2px solid #e2e8f0', fontSize: '0.85rem', background: '#f8fafc' };
+  const actionBtnStyle = { background: 'transparent', border: '1.5px solid #e2e8f0', borderRadius: '0.5rem', width: 34, height: 34, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', transition: 'all .2s ease', cursor: 'pointer' };
+
   return (
-    <div>
-      <h2>Transactions</h2>
-      <div className="d-flex justify-content-between align-items-center mb-3">
-        <div>
-          <span className="fw-bold">Current Balance: </span>
-          <span className={balance >= 0 ? 'text-success' : 'text-danger'}>
-            ₹{balance.toLocaleString()}
-          </span>
+    <div className="transactions-page" style={{ minHeight: '100vh', background: 'linear-gradient(180deg, #f8fafc 0%, #eef2f7 50%, #e2e8f0 100%)' }}>
+
+      {/* ── HERO HEADER ── */}
+      <div style={{
+        background: 'linear-gradient(135deg, #0f172a 0%, #1e3a5f 40%, #2563eb 100%)',
+        padding: '2.5rem 2.5rem 5rem',
+        position: 'relative',
+        overflow: 'hidden'
+      }}>
+        {/* Decorative orbs */}
+        <div style={{ position: 'absolute', top: -60, right: -40, width: 200, height: 200, borderRadius: '50%', background: 'radial-gradient(circle, rgba(99,102,241,0.3) 0%, transparent 70%)', filter: 'blur(2px)' }} />
+        <div style={{ position: 'absolute', bottom: -30, left: '30%', width: 150, height: 150, borderRadius: '50%', background: 'radial-gradient(circle, rgba(56,189,248,0.2) 0%, transparent 70%)' }} />
+        <div style={{ position: 'absolute', top: 20, left: '60%', width: 80, height: 80, borderRadius: '50%', background: 'radial-gradient(circle, rgba(168,85,247,0.2) 0%, transparent 70%)' }} />
+
+        <div className="d-flex justify-content-between align-items-start flex-wrap gap-3" style={{ position: 'relative', zIndex: 2 }}>
+          <div>
+            <div className="d-flex align-items-center gap-2 mb-2">
+              <div style={{
+                background: 'rgba(99,102,241,0.3)',
+                borderRadius: '0.6rem',
+                padding: '0.4rem',
+                display: 'inline-flex',
+                backdropFilter: 'blur(8px)',
+                border: '1px solid rgba(255,255,255,0.1)'
+              }}>
+                <FiActivity size={20} style={{ color: '#a5b4fc' }} />
+              </div>
+              <span style={{ color: 'rgba(165,180,252,0.9)', fontSize: '0.8rem', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Financial Hub</span>
+            </div>
+            <h2 className="mb-1" style={{ color: '#fff', fontSize: '2rem', fontWeight: 800, letterSpacing: '-0.03em', lineHeight: 1.1 }}>
+              Transactions
+            </h2>
+            <p className="mb-0" style={{ color: 'rgba(203,213,225,0.8)', fontSize: '0.92rem', fontWeight: 400 }}>
+              Real-time overview of all your financial movements
+            </p>
+          </div>
+          <div className="d-flex gap-2 flex-wrap align-items-center" style={{ marginTop: '0.5rem' }}>
+            {transactions.length > 0 && (
+              <button
+                className="txn-btn-glass"
+                onClick={downloadAllTransactionsInvoice}
+                title="Download complete statement with GST details"
+              >
+                <FiDownload size={15} style={{ marginRight: 7 }} />
+                Export PDF
+              </button>
+            )}
+            {canEdit && (
+              <button
+                className="txn-btn-primary"
+                onClick={() => setShowAddModal(true)}
+              >
+                <FiPlus size={16} style={{ marginRight: 6 }} />
+                New Transaction
+              </button>
+            )}
+          </div>
         </div>
-        {transactions.length > 0 && (
-          <button
-            className="btn btn-outline-success"
-            onClick={downloadAllTransactionsInvoice}
-            title="Download complete statement with GST details"
-          >
-            <i className="bi bi-download me-2"></i>
-            Download All Invoices (PDF)
-          </button>
+      </div>
+
+      <div className="container-fluid px-3 px-md-4" style={{ position: 'relative', zIndex: 1, marginTop: '-3.5rem' }}>
+
+        {/* ── Alerts ── */}
+        {error && (
+          <div className="d-flex align-items-center gap-2 mb-3" style={{
+            background: 'linear-gradient(135deg, #fef2f2, #fff1f2)',
+            borderRadius: '0.85rem',
+            padding: '0.85rem 1.15rem',
+            border: '1px solid #fecdd3',
+            boxShadow: '0 4px 12px rgba(239,68,68,0.1)',
+            animation: 'slideDown .3s ease'
+          }}>
+            <div style={{ background: '#fee2e2', borderRadius: '50%', width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <span style={{ fontSize: '0.85rem' }}>⚠️</span>
+            </div>
+            <span style={{ color: '#991b1b', fontWeight: 500, fontSize: '0.88rem', flex: 1 }}>{error}</span>
+            <button className="btn btn-sm p-0" onClick={() => setError('')} style={{ color: '#f87171', background: 'none', border: 'none' }}><FiX size={18} /></button>
+          </div>
         )}
-      </div>
+        {success && (
+          <div className="d-flex align-items-center gap-2 mb-3" style={{
+            background: 'linear-gradient(135deg, #f0fdf4, #ecfdf5)',
+            borderRadius: '0.85rem',
+            padding: '0.85rem 1.15rem',
+            border: '1px solid #bbf7d0',
+            boxShadow: '0 4px 12px rgba(34,197,94,0.1)',
+            animation: 'slideDown .3s ease'
+          }}>
+            <div style={{ background: '#dcfce7', borderRadius: '50%', width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <span style={{ fontSize: '0.85rem' }}>✅</span>
+            </div>
+            <span style={{ color: '#166534', fontWeight: 500, fontSize: '0.88rem', flex: 1 }}>{success}</span>
+            <button className="btn btn-sm p-0" onClick={() => setSuccess('')} style={{ color: '#4ade80', background: 'none', border: 'none' }}><FiX size={18} /></button>
+          </div>
+        )}
 
-      {canView && (
-        <form className="row g-2 mb-4" onSubmit={e => { e.preventDefault(); fetchTransactions(); }}>
-          <div className="col-md-2">
-            <select className="form-select" name="type" value={filter.type} onChange={handleFilterChange}>
-              <option value="">All Types</option>
-              <option value="Income">Income</option>
-              <option value="Expense">Expense</option>
-            </select>
-          </div>
-          <div className="col-md-2">
-            <select className="form-select" name="category" value={filter.category} onChange={handleFilterChange}>
-              <option value="">All Categories</option>
-              {categories.map(c => <option key={c} value={c}>{c}</option>)}
-            </select>
-          </div>
-          <div className="col-md-2">
-            <input type="date" className="form-control" name="startDate" value={filter.startDate} onChange={handleFilterChange} />
-          </div>
-          <div className="col-md-2">
-            <input type="date" className="form-control" name="endDate" value={filter.endDate} onChange={handleFilterChange} />
-          </div>
-          <div className="col-md-2">
-            <button className="btn btn-outline-primary w-100" type="submit">Filter</button>
-          </div>
-          <div className="col-md-2">
-            <button className="btn btn-outline-secondary w-100" type="button" onClick={() => setFilter({ type: '', category: '', startDate: '', endDate: '' })}>Reset</button>
-          </div>
-        </form>
-      )}
+        {/* ── SUMMARY CARDS ── */}
+        <div className="row g-3 mb-4">
+          {[
+            {
+              label: 'Total Income',
+              value: totalIncome,
+              gradient: 'linear-gradient(135deg, #059669 0%, #10b981 100%)',
+              iconBg: 'rgba(255,255,255,0.2)',
+              icon: <FiTrendingUp size={20} />,
+              shadow: '0 8px 32px rgba(16,185,129,0.3)'
+            },
+            {
+              label: 'Total Expenses',
+              value: totalExpense,
+              gradient: 'linear-gradient(135deg, #dc2626 0%, #f43f5e 100%)',
+              iconBg: 'rgba(255,255,255,0.2)',
+              icon: <FiTrendingDown size={20} />,
+              shadow: '0 8px 32px rgba(244,63,94,0.3)'
+            },
+            {
+              label: 'Net Balance',
+              value: balance,
+              gradient: balance >= 0
+                ? 'linear-gradient(135deg, #2563eb 0%, #3b82f6 100%)'
+                : 'linear-gradient(135deg, #dc2626 0%, #ef4444 100%)',
+              iconBg: 'rgba(255,255,255,0.2)',
+              icon: <FiDollarSign size={20} />,
+              shadow: balance >= 0 ? '0 8px 32px rgba(59,130,246,0.3)' : '0 8px 32px rgba(239,68,68,0.3)'
+            },
+            {
+              label: 'Transactions',
+              value: transactions.length,
+              gradient: 'linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%)',
+              iconBg: 'rgba(255,255,255,0.2)',
+              icon: <FiLayers size={20} />,
+              shadow: '0 8px 32px rgba(139,92,246,0.3)',
+              isCurrency: false
+            }
+          ].map((card, i) => (
+            <div className="col-6 col-lg-3" key={i}>
+              <div className="txn-summary-card" style={{
+                background: card.gradient,
+                borderRadius: '1.1rem',
+                padding: '1.4rem 1.3rem',
+                height: '100%',
+                color: '#fff',
+                position: 'relative',
+                overflow: 'hidden',
+                boxShadow: card.shadow,
+                cursor: 'default'
+              }}>
+                {/* Decorative circle */}
+                <div style={{ position: 'absolute', top: -15, right: -15, width: 70, height: 70, borderRadius: '50%', background: 'rgba(255,255,255,0.08)' }} />
+                <div style={{ position: 'absolute', bottom: -20, right: 30, width: 50, height: 50, borderRadius: '50%', background: 'rgba(255,255,255,0.05)' }} />
 
-      {canEdit && (
-        <div className="card mb-4 p-3">
-          <h5>{editingId ? 'Edit Transaction' : 'Add Transaction'}</h5>
-          <form className="row g-2" onSubmit={handleSubmit}>
-            <div className="col-md-3">
-              <input type="text" className="form-control" name="description" placeholder="Description" value={form.description} onChange={handleChange} required />
+                <div style={{ position: 'relative', zIndex: 1 }}>
+                  <div style={{
+                    background: card.iconBg,
+                    borderRadius: '0.65rem',
+                    padding: '0.5rem',
+                    display: 'inline-flex',
+                    marginBottom: '0.85rem',
+                    backdropFilter: 'blur(8px)'
+                  }}>
+                    {card.icon}
+                  </div>
+                  <div style={{ fontSize: '0.72rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', opacity: 0.85, marginBottom: '0.25rem' }}>
+                    {card.label}
+                  </div>
+                  <div style={{ fontSize: '1.6rem', fontWeight: 800, lineHeight: 1.1, letterSpacing: '-0.02em' }}>
+                    {card.isCurrency === false ? card.value : `₹${card.value.toLocaleString()}`}
+                  </div>
+                </div>
+              </div>
             </div>
-            <div className="col-md-2">
-              <input type="number" className="form-control" name="amount" placeholder="Amount" value={form.amount} onChange={handleChange} required min="0" />
-            </div>
-            <div className="col-md-2">
-              <select className="form-select" name="type" value={form.type} onChange={handleChange} required>
-                <option value="Income">Income</option>
-                <option value="Expense">Expense</option>
-              </select>
-            </div>
-            <div className="col-md-2">
-              <select className="form-select" name="category" value={form.category} onChange={handleChange} required>
-                <option value="">Select Category</option>
-                {categories.map(c => <option key={c} value={c}>{c}</option>)}
-              </select>
-            </div>
-            <div className="col-md-2">
-              <input type="date" className="form-control" name="date" value={form.date} onChange={handleChange} required />
-            </div>
-            <div className="col-md-1 d-flex gap-1">
-              <button className="btn btn-success" type="submit">{editingId ? 'Update' : 'Add'}</button>
-              {editingId && <button className="btn btn-secondary" type="button" onClick={handleCancel}>Cancel</button>}
-            </div>
-          </form>
+          ))}
         </div>
-      )}
 
-      <div className="card p-3">
-        <div className="table-responsive">
-          <table className="table table-bordered align-middle">
-            <thead className="table-light">
-              <tr>
-                <th>Date</th>
-                <th>Description</th>
-                <th>Type</th>
-                <th>Category</th>
-                <th>Amount</th>
-                <th>Invoice</th>
-                {canEdit && <th>Actions</th>}
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
-                <tr><td colSpan={canEdit ? 7 : 6} className="text-center">Loading...</td></tr>
-              ) : transactions.length === 0 ? (
-                <tr><td colSpan={canEdit ? 7 : 6} className="text-center text-muted">No transactions found</td></tr>
-              ) : (
-                transactions.map(t => (
-                  <tr key={t._id}>
-                    <td>{t.date ? t.date.slice(0, 10) : ''}</td>
-                    <td>{t.description}</td>
-                    <td>{t.type}</td>
-                    <td>{t.category}</td>
-                    <td className={t.type === 'Income' ? 'text-success' : 'text-danger'}>
-                      {t.type === 'Income' ? '+' : '-'}₹{t.amount.toLocaleString()}
+        {/* ── FILTERS CARD ── */}
+        {canView && (
+          <div className="txn-card" style={{ marginBottom: '1rem' }}>
+            <button
+              className="btn w-100 d-flex justify-content-between align-items-center"
+              onClick={() => setShowFilters(!showFilters)}
+              style={{
+                padding: '0.9rem 1.4rem',
+                border: 'none',
+                background: 'transparent',
+                fontWeight: 600,
+                color: '#334155',
+                fontSize: '0.9rem'
+              }}
+            >
+              <span className="d-flex align-items-center gap-2">
+                <span style={{ background: '#eef2ff', borderRadius: '0.45rem', padding: '0.3rem', display: 'inline-flex' }}>
+                  <FiFilter size={15} style={{ color: '#6366f1' }} />
+                </span>
+                Filters & Search
+                {(filter.type || filter.category || filter.startDate || filter.endDate) && (
+                  <span style={{ background: '#6366f1', color: '#fff', borderRadius: '999px', fontSize: '0.65rem', padding: '0.1rem 0.45rem', fontWeight: 700 }}>Active</span>
+                )}
+              </span>
+              <span style={{ background: '#f1f5f9', borderRadius: '0.4rem', padding: '0.25rem', display: 'inline-flex' }}>
+                {showFilters ? <FiChevronUp size={16} style={{ color: '#64748b' }} /> : <FiChevronDown size={16} style={{ color: '#64748b' }} />}
+              </span>
+            </button>
+            <div style={{
+              maxHeight: showFilters ? 200 : 0,
+              overflow: 'hidden',
+              transition: 'max-height .3s ease, padding .3s ease',
+              padding: showFilters ? '0 1.4rem 1.2rem' : '0 1.4rem'
+            }}>
+              <form className="row g-2" onSubmit={e => { e.preventDefault(); fetchTransactions(); }}>
+                <div className="col-md-2">
+                  <label className="form-label mb-1" style={{ fontSize: '0.72rem', fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Type</label>
+                  <select className="form-select form-select-sm" style={filterInputStyle} name="type" value={filter.type} onChange={handleFilterChange}>
+                    <option value="">All Types</option>
+                    <option value="Income">Income</option>
+                    <option value="Expense">Expense</option>
+                  </select>
+                </div>
+                <div className="col-md-2">
+                  <label className="form-label mb-1" style={{ fontSize: '0.72rem', fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Category</label>
+                  <select className="form-select form-select-sm" style={filterInputStyle} name="category" value={filter.category} onChange={handleFilterChange}>
+                    <option value="">All Categories</option>
+                    {categories.map(c => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                </div>
+                <div className="col-md-2">
+                  <label className="form-label mb-1" style={{ fontSize: '0.72rem', fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>From</label>
+                  <input type="date" className="form-control form-control-sm" style={filterInputStyle} name="startDate" value={filter.startDate} onChange={handleFilterChange} />
+                </div>
+                <div className="col-md-2">
+                  <label className="form-label mb-1" style={{ fontSize: '0.72rem', fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>To</label>
+                  <input type="date" className="form-control form-control-sm" style={filterInputStyle} name="endDate" value={filter.endDate} onChange={handleFilterChange} />
+                </div>
+                <div className="col-md-2 d-flex align-items-end">
+                  <button className="btn btn-sm w-100" type="submit"
+                    style={{ background: 'linear-gradient(135deg, #4f46e5, #6366f1)', color: '#fff', borderRadius: '0.55rem', fontWeight: 600, border: 'none', padding: '0.45rem', boxShadow: '0 2px 8px rgba(99,102,241,0.3)' }}>
+                    <FiSearch size={13} style={{ marginRight: 4 }} /> Apply
+                  </button>
+                </div>
+                <div className="col-md-2 d-flex align-items-end">
+                  <button className="btn btn-sm w-100" type="button"
+                    style={{ background: '#f1f5f9', color: '#64748b', borderRadius: '0.55rem', border: '1.5px solid #e2e8f0', fontWeight: 500, padding: '0.45rem' }}
+                    onClick={() => setFilter({ type: '', category: '', startDate: '', endDate: '', paymentMethod: '' })}>
+                    <FiRefreshCw size={13} style={{ marginRight: 4 }} /> Reset
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* ── QUICK ADD PAYMENT METHODS ── */}
+        {canEdit && (
+          <div className="txn-card" style={{ padding: '1.3rem 1.4rem', marginBottom: '1rem' }}>
+            <div className="d-flex justify-content-between align-items-center mb-2">
+              <h6 className="mb-0 d-flex align-items-center gap-2" style={{ fontWeight: 700, color: '#1e293b', fontSize: '0.92rem' }}>
+                <span style={{ background: '#fef3c7', borderRadius: '0.45rem', padding: '0.3rem', display: 'inline-flex' }}>
+                  <FiCreditCard size={15} style={{ color: '#d97706' }} />
+                </span>
+                Payment Methods
+              </h6>
+              <div className="d-flex gap-2">
+                <button type="button" className="txn-pill-btn" onClick={() => setShowHandCashForm(!showHandCashForm)}
+                  style={{
+                    background: showHandCashForm ? 'linear-gradient(135deg, #0284c7, #0ea5e9)' : '#f0f9ff',
+                    color: showHandCashForm ? '#fff' : '#0284c7',
+                    border: showHandCashForm ? 'none' : '1.5px solid #bae6fd',
+                    boxShadow: showHandCashForm ? '0 2px 8px rgba(14,165,233,0.3)' : 'none'
+                  }}>
+                  {showHandCashForm ? <FiX size={13} /> : <FiPlus size={13} />}
+                  <span style={{ marginLeft: 4 }}>{showHandCashForm ? 'Close' : 'Hand Cash'}</span>
+                </button>
+                <button type="button" className="txn-pill-btn" onClick={() => setShowBankAccountForm(!showBankAccountForm)}
+                  style={{
+                    background: showBankAccountForm ? 'linear-gradient(135deg, #7c3aed, #8b5cf6)' : '#faf5ff',
+                    color: showBankAccountForm ? '#fff' : '#7c3aed',
+                    border: showBankAccountForm ? 'none' : '1.5px solid #ddd6fe',
+                    boxShadow: showBankAccountForm ? '0 2px 8px rgba(139,92,246,0.3)' : 'none'
+                  }}>
+                  {showBankAccountForm ? <FiX size={13} /> : <FiPlus size={13} />}
+                  <span style={{ marginLeft: 4 }}>{showBankAccountForm ? 'Close' : 'Bank Account'}</span>
+                </button>
+              </div>
+            </div>
+
+            {showHandCashForm && (
+              <div style={{ background: 'linear-gradient(135deg, #f0f9ff, #e0f2fe)', borderRadius: '0.85rem', padding: '1.15rem', marginTop: '0.85rem', border: '1.5px solid #bae6fd', animation: 'slideDown .25s ease' }}>
+                <h6 style={{ color: '#0369a1', fontWeight: 700, fontSize: '0.82rem', marginBottom: '0.85rem', display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#0ea5e9', display: 'inline-block' }} />
+                  New Hand Cash Record
+                </h6>
+                <form onSubmit={handleHandCashSubmit} className="row g-2">
+                  <div className="col-md-4">
+                    <input type="text" className="form-control form-control-sm" style={modalInputStyle} placeholder="Holder Name"
+                      value={handCashForm.holder} onChange={(e) => setHandCashForm({ ...handCashForm, holder: e.target.value })} required />
+                  </div>
+                  <div className="col-md-3">
+                    <input type="number" className="form-control form-control-sm" style={modalInputStyle} placeholder="₹ Amount"
+                      value={handCashForm.amount} onChange={(e) => setHandCashForm({ ...handCashForm, amount: e.target.value })} required min="0" step="0.01" />
+                  </div>
+                  <div className="col-md-3">
+                    <input type="text" className="form-control form-control-sm" style={modalInputStyle} placeholder="Description"
+                      value={handCashForm.description} onChange={(e) => setHandCashForm({ ...handCashForm, description: e.target.value })} />
+                  </div>
+                  <div className="col-md-2 d-flex align-items-end">
+                    <button type="submit" className="btn btn-sm w-100" disabled={formLoading}
+                      style={{ background: 'linear-gradient(135deg, #0284c7, #0ea5e9)', color: '#fff', borderRadius: '0.55rem', fontWeight: 600, border: 'none', boxShadow: '0 2px 8px rgba(14,165,233,0.25)' }}>
+                      {formLoading ? '...' : 'Create'}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            )}
+
+            {showBankAccountForm && (
+              <div style={{ background: 'linear-gradient(135deg, #faf5ff, #ede9fe)', borderRadius: '0.85rem', padding: '1.15rem', marginTop: '0.85rem', border: '1.5px solid #ddd6fe', animation: 'slideDown .25s ease' }}>
+                <h6 style={{ color: '#6d28d9', fontWeight: 700, fontSize: '0.82rem', marginBottom: '0.85rem', display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#8b5cf6', display: 'inline-block' }} />
+                  New Bank Account
+                </h6>
+                <form onSubmit={handleBankAccountSubmit} className="row g-2">
+                  <div className="col-md-3">
+                    <input type="text" className="form-control form-control-sm" style={modalInputStyle} placeholder="Account Number"
+                      value={bankAccountForm.accountNumber} onChange={(e) => setBankAccountForm({ ...bankAccountForm, accountNumber: e.target.value })} required />
+                  </div>
+                  <div className="col-md-2">
+                    <input type="text" className="form-control form-control-sm" style={modalInputStyle} placeholder="Holder"
+                      value={bankAccountForm.accountHolder} onChange={(e) => setBankAccountForm({ ...bankAccountForm, accountHolder: e.target.value })} required />
+                  </div>
+                  <div className="col-md-2">
+                    <input type="text" className="form-control form-control-sm" style={modalInputStyle} placeholder="Bank Name"
+                      value={bankAccountForm.bankName} onChange={(e) => setBankAccountForm({ ...bankAccountForm, bankName: e.target.value })} required />
+                  </div>
+                  <div className="col-md-2">
+                    <input type="text" className="form-control form-control-sm" style={modalInputStyle} placeholder="Branch"
+                      value={bankAccountForm.branch} onChange={(e) => setBankAccountForm({ ...bankAccountForm, branch: e.target.value })} required />
+                  </div>
+                  <div className="col-md-1">
+                    <input type="number" className="form-control form-control-sm" style={modalInputStyle} placeholder="₹"
+                      value={bankAccountForm.balance} onChange={(e) => setBankAccountForm({ ...bankAccountForm, balance: e.target.value })} required min="0" step="0.01" />
+                  </div>
+                  <div className="col-md-2 d-flex align-items-end">
+                    <button type="submit" className="btn btn-sm w-100" disabled={formLoading}
+                      style={{ background: 'linear-gradient(135deg, #7c3aed, #8b5cf6)', color: '#fff', borderRadius: '0.55rem', fontWeight: 600, border: 'none', boxShadow: '0 2px 8px rgba(139,92,246,0.25)' }}>
+                      {formLoading ? '...' : 'Create'}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ── TRANSACTIONS TABLE ── */}
+        <div className="txn-card" style={{ overflow: 'hidden', marginBottom: '2rem' }}>
+          <div style={{ padding: '1.15rem 1.4rem', borderBottom: '1px solid #f1f5f9' }} className="d-flex justify-content-between align-items-center">
+            <h6 className="mb-0 d-flex align-items-center gap-2" style={{ fontWeight: 700, color: '#1e293b', fontSize: '0.92rem' }}>
+              <span style={{ background: '#f1f5f9', borderRadius: '0.45rem', padding: '0.3rem', display: 'inline-flex' }}>
+                <FiLayers size={15} style={{ color: '#475569' }} />
+              </span>
+              All Transactions
+              <span style={{
+                background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+                color: '#fff',
+                fontSize: '0.68rem',
+                padding: '0.15rem 0.6rem',
+                borderRadius: '999px',
+                fontWeight: 700,
+                letterSpacing: '0.02em'
+              }}>
+                {transactions.length}
+              </span>
+            </h6>
+          </div>
+
+          <div className="table-responsive">
+            <table className="table align-middle mb-0" style={{ fontSize: '0.88rem' }}>
+              <thead>
+                <tr style={{ background: '#fafbfc' }}>
+                  <th style={thStyle}>Date</th>
+                  <th style={thStyle}>Description</th>
+                  <th style={thStyle}>Type</th>
+                  <th style={thStyle}>Category</th>
+                  <th style={{ ...thStyle, textAlign: 'right' }}>Amount</th>
+                  <th style={thStyle}>Payment</th>
+                  {canEdit && <th style={{ ...thStyle, textAlign: 'center' }}>Actions</th>}
+                </tr>
+              </thead>
+              <tbody>
+                {loading ? (
+                  <tr>
+                    <td colSpan={canEdit ? 7 : 6} className="text-center" style={{ padding: '4rem 0' }}>
+                      <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+                        <div className="txn-spinner" />
+                        <span style={{ color: '#94a3b8', fontWeight: 500, fontSize: '0.88rem' }}>Loading transactions...</span>
+                      </div>
                     </td>
-                    <td>
-                      <button
-                        className="btn btn-sm btn-outline-primary"
-                        onClick={() => downloadInvoice(t)}
-                        title="Download Invoice with GST"
-                      >
-                        📄 Invoice
-                      </button>
-                    </td>
-                    {canEdit && (
-                      <td>
-                        <button className="btn btn-sm btn-primary me-2" onClick={() => handleEdit(t)}>Edit</button>
-                        <button className="btn btn-sm btn-danger" onClick={() => handleDelete(t._id)}>Delete</button>
-                      </td>
-                    )}
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                ) : transactions.length === 0 ? (
+                  <tr>
+                    <td colSpan={canEdit ? 7 : 6} className="text-center" style={{ padding: '4rem 0' }}>
+                      <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+                        <div style={{
+                          background: 'linear-gradient(135deg, #f1f5f9, #e2e8f0)',
+                          borderRadius: '1rem',
+                          padding: '1.2rem',
+                          marginBottom: 4
+                        }}>
+                          <FiFileText size={32} style={{ color: '#94a3b8' }} />
+                        </div>
+                        <div style={{ fontWeight: 600, color: '#475569', fontSize: '0.95rem' }}>No transactions yet</div>
+                        <div style={{ fontSize: '0.82rem', color: '#94a3b8', maxWidth: 280 }}>Start tracking your finances by adding your first transaction</div>
+                        {canEdit && (
+                          <button className="btn btn-sm mt-2" onClick={() => setShowAddModal(true)}
+                            style={{ background: 'linear-gradient(135deg, #4f46e5, #6366f1)', color: '#fff', borderRadius: '0.55rem', fontWeight: 600, padding: '0.4rem 1rem', border: 'none', boxShadow: '0 2px 8px rgba(99,102,241,0.3)' }}>
+                            <FiPlus size={14} style={{ marginRight: 4 }} /> Add Transaction
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ) : (
+                  transactions.map((t, idx) => (
+                    <tr key={t._id} className="txn-table-row" style={{ animation: `fadeInRow .3s ease ${idx * 0.02}s both` }}>
+                      <td style={tdStyle}>
+                        <div className="d-flex align-items-center gap-2">
+                          <span style={{ background: '#f1f5f9', borderRadius: '0.4rem', padding: '0.25rem', display: 'inline-flex' }}>
+                            <FiCalendar size={12} style={{ color: '#94a3b8' }} />
+                          </span>
+                          <span style={{ fontWeight: 500, fontSize: '0.84rem' }}>{t.date ? t.date.slice(0, 10) : ''}</span>
+                        </div>
+                      </td>
+                      <td style={{ ...tdStyle, fontWeight: 600, color: '#0f172a', maxWidth: 220 }}>
+                        <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {t.description}
+                        </div>
+                      </td>
+                      <td style={tdStyle}>
+                        <span style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 5,
+                          padding: '0.28rem 0.75rem',
+                          borderRadius: '999px',
+                          fontSize: '0.74rem',
+                          fontWeight: 700,
+                          background: t.type === 'Income'
+                            ? 'linear-gradient(135deg, #dcfce7, #bbf7d0)'
+                            : 'linear-gradient(135deg, #fee2e2, #fecaca)',
+                          color: t.type === 'Income' ? '#15803d' : '#dc2626',
+                          letterSpacing: '0.02em'
+                        }}>
+                          {t.type === 'Income' ? <FiArrowDownLeft size={12} /> : <FiArrowUpRight size={12} />}
+                          {t.type}
+                        </span>
+                      </td>
+                      <td style={tdStyle}>
+                        <span style={{
+                          background: '#f1f5f9',
+                          color: '#334155',
+                          padding: '0.22rem 0.6rem',
+                          borderRadius: '0.4rem',
+                          fontSize: '0.74rem',
+                          fontWeight: 600,
+                          border: '1px solid #e2e8f0'
+                        }}>
+                          {t.category}
+                        </span>
+                      </td>
+                      <td style={{ ...tdStyle, textAlign: 'right' }}>
+                        <span style={{
+                          color: t.type === 'Income' ? '#059669' : '#dc2626',
+                          fontWeight: 800,
+                          fontSize: '0.95rem',
+                          fontFamily: "'Segoe UI', system-ui, monospace",
+                          letterSpacing: '-0.01em'
+                        }}>
+                          {t.type === 'Income' ? '+' : '-'}₹{t.amount.toLocaleString()}
+                        </span>
+                      </td>
+                      <td style={tdStyle}>
+                        {getPaymentMethodLabel(t) ? (
+                          <div>
+                            <span style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: 5,
+                              fontWeight: 600,
+                              fontSize: '0.82rem',
+                              color: '#1e293b'
+                            }}>
+                              <span style={{
+                                background: getPaymentMethodLabel(t) === 'Hand Cash' ? '#fef3c7' : '#dbeafe',
+                                borderRadius: '0.35rem',
+                                padding: '0.2rem',
+                                display: 'inline-flex'
+                              }}>
+                                <FiCreditCard size={11} style={{ color: getPaymentMethodLabel(t) === 'Hand Cash' ? '#d97706' : '#2563eb' }} />
+                              </span>
+                              {getPaymentMethodLabel(t)}
+                            </span>
+                            {getPaymentMethodLabel(t) === 'Bank Account' && t.bankAccountId && (
+                              <div style={{ fontSize: '0.7rem', color: '#94a3b8', marginTop: 3, fontWeight: 500 }}>
+                                {t.bankAccountId.accountNumber} – {t.bankAccountId.accountHolder}
+                              </div>
+                            )}
+                            {getPaymentMethodLabel(t) === 'Hand Cash' && t.handCashId && (
+                              <div style={{ fontSize: '0.7rem', color: '#94a3b8', marginTop: 3, fontWeight: 500 }}>
+                                {t.handCashId.holder} – ₹{t.handCashId.amount}
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <span style={{ color: '#cbd5e1' }}>—</span>
+                        )}
+                      </td>
+                      {canEdit && (
+                        <td style={{ ...tdStyle, textAlign: 'center' }}>
+                          <div className="d-flex justify-content-center gap-1">
+                            <button className="btn btn-sm txn-action-btn txn-action-edit"
+                              onClick={() => { handleEdit(t); setShowAddModal(true); }} title="Edit">
+                              <FiEdit2 size={14} />
+                            </button>
+                            <button className="btn btn-sm txn-action-btn txn-action-download"
+                              onClick={() => downloadInvoice(t)} title="Invoice">
+                              <FiDownload size={14} />
+                            </button>
+                            <button className="btn btn-sm txn-action-btn txn-action-delete"
+                              onClick={() => handleDelete(t._id)} title="Delete">
+                              <FiTrash2 size={14} />
+                            </button>
+                          </div>
+                        </td>
+                      )}
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
-      {error && <div className="text-danger mt-2">{error}</div>}
+
+      {/* ── ADD / EDIT TRANSACTION MODAL ── */}
+      {showAddModal && canEdit && (
+        <div className="txn-modal-overlay"
+          onClick={(e) => { if (e.target === e.currentTarget) { handleCancel(); setShowAddModal(false); } }}
+        >
+          <div className="txn-modal">
+            {/* Modal Header */}
+            <div style={{
+              background: 'linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #2563eb 100%)',
+              padding: '1.5rem 1.75rem',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              position: 'relative',
+              overflow: 'hidden'
+            }}>
+              <div style={{ position: 'absolute', top: -20, right: -20, width: 80, height: 80, borderRadius: '50%', background: 'rgba(99,102,241,0.2)' }} />
+              <div style={{ position: 'relative', zIndex: 1 }}>
+                <div style={{ color: 'rgba(165,180,252,0.8)', fontSize: '0.72rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>
+                  {editingId ? 'Update Record' : 'Create New'}
+                </div>
+                <h5 className="mb-0 fw-bold" style={{ color: '#fff', fontSize: '1.15rem' }}>
+                  {editingId ? 'Edit Transaction' : 'New Transaction'}
+                </h5>
+              </div>
+              <button className="btn btn-sm" onClick={() => { handleCancel(); setShowAddModal(false); }}
+                style={{
+                  color: '#fff',
+                  background: 'rgba(255,255,255,0.1)',
+                  border: '1px solid rgba(255,255,255,0.15)',
+                  borderRadius: '0.55rem',
+                  width: 36,
+                  height: 36,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backdropFilter: 'blur(4px)',
+                  position: 'relative',
+                  zIndex: 1
+                }}>
+                <FiX size={18} />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <form onSubmit={(e) => { handleSubmit(e); if (!error) setShowAddModal(false); }} style={{ padding: '1.75rem' }}>
+              <div className="row g-3">
+                <div className="col-12">
+                  <label className="form-label mb-1" style={{ fontSize: '0.76rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Description</label>
+                  <input type="text" className="form-control txn-modal-input" name="description" placeholder="e.g. Office rent payment"
+                    value={form.description} onChange={handleChange} required />
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label mb-1" style={{ fontSize: '0.76rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Amount (₹)</label>
+                  <input type="number" className="form-control txn-modal-input" name="amount" placeholder="0.00"
+                    value={form.amount} onChange={handleChange} required min="0" />
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label mb-1" style={{ fontSize: '0.76rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Type</label>
+                  <select className="form-select txn-modal-input" name="type" value={form.type} onChange={handleChange} required>
+                    <option value="Income">💰 Income</option>
+                    <option value="Expense">💸 Expense</option>
+                  </select>
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label mb-1" style={{ fontSize: '0.76rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Category</label>
+                  <select className="form-select txn-modal-input" name="category" value={form.category} onChange={handleChange} required>
+                    <option value="">Select Category</option>
+                    {categories.map(c => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label mb-1" style={{ fontSize: '0.76rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Date</label>
+                  <input type="date" className="form-control txn-modal-input" name="date" value={form.date} onChange={handleChange} required />
+                </div>
+                <div className="col-12">
+                  <label className="form-label mb-1" style={{ fontSize: '0.76rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Payment Method</label>
+                  <select className="form-select txn-modal-input" name="paymentMethod" value={form.paymentMethod} onChange={handleChange} required>
+                    <option value="">Select Method</option>
+                    <option value="Bank Account">🏦 Bank Account</option>
+                    <option value="Hand Cash">💵 Hand Cash</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Modal Footer */}
+              <div className="d-flex justify-content-end gap-2 mt-4 pt-3" style={{ borderTop: '1.5px solid #f1f5f9' }}>
+                <button type="button" className="btn"
+                  style={{ background: '#f1f5f9', color: '#64748b', border: '1.5px solid #e2e8f0', borderRadius: '0.6rem', padding: '0.55rem 1.3rem', fontWeight: 600, fontSize: '0.88rem' }}
+                  onClick={() => { handleCancel(); setShowAddModal(false); }}>
+                  Cancel
+                </button>
+                <button type="submit" className="btn"
+                  style={{
+                    background: editingId
+                      ? 'linear-gradient(135deg, #2563eb, #3b82f6)'
+                      : 'linear-gradient(135deg, #059669, #10b981)',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: '0.6rem',
+                    padding: '0.55rem 1.6rem',
+                    fontWeight: 700,
+                    fontSize: '0.88rem',
+                    boxShadow: editingId
+                      ? '0 4px 14px rgba(37,99,235,0.35)'
+                      : '0 4px 14px rgba(16,185,129,0.35)',
+                    letterSpacing: '0.01em'
+                  }}>
+                  {editingId ? 'Update Transaction' : 'Add Transaction'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── EMBEDDED STYLES ── */}
+      <style>{`
+        @keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(30px) scale(0.97) } to { opacity: 1; transform: translateY(0) scale(1) } }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-8px) } to { opacity: 1; transform: translateY(0) } }
+        @keyframes fadeInRow { from { opacity: 0; transform: translateX(-8px) } to { opacity: 1; transform: translateX(0) } }
+        @keyframes spin { to { transform: rotate(360deg) } }
+
+        .txn-card {
+          background: #fff;
+          borderRadius: 1.1rem;
+          border: 1px solid #e2e8f0;
+          border-radius: 1.1rem;
+          overflow: hidden;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 14px rgba(0,0,0,0.02);
+        }
+
+        .txn-btn-glass {
+          background: rgba(255,255,255,0.1) !important;
+          color: #fff !important;
+          border: 1.5px solid rgba(255,255,255,0.2) !important;
+          border-radius: 0.6rem !important;
+          padding: 0.5rem 1.1rem !important;
+          font-weight: 600 !important;
+          font-size: 0.85rem !important;
+          backdrop-filter: blur(8px);
+          transition: all .2s ease !important;
+          display: inline-flex !important;
+          align-items: center !important;
+        }
+        .txn-btn-glass:hover {
+          background: rgba(255,255,255,0.2) !important;
+          border-color: rgba(255,255,255,0.35) !important;
+          transform: translateY(-1px);
+          box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .txn-btn-primary {
+          background: linear-gradient(135deg, #10b981, #059669) !important;
+          color: #fff !important;
+          border: none !important;
+          border-radius: 0.6rem !important;
+          padding: 0.5rem 1.2rem !important;
+          font-weight: 700 !important;
+          font-size: 0.85rem !important;
+          box-shadow: 0 4px 14px rgba(16,185,129,0.35) !important;
+          transition: all .2s ease !important;
+          display: inline-flex !important;
+          align-items: center !important;
+        }
+        .txn-btn-primary:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 6px 20px rgba(16,185,129,0.45) !important;
+        }
+
+        .txn-pill-btn {
+          border-radius: 999px !important;
+          padding: 0.35rem 0.85rem !important;
+          font-weight: 600 !important;
+          font-size: 0.78rem !important;
+          display: inline-flex !important;
+          align-items: center !important;
+          transition: all .2s ease !important;
+          cursor: pointer !important;
+        }
+
+        .txn-summary-card {
+          transition: transform .2s ease, box-shadow .2s ease;
+        }
+        .txn-summary-card:hover {
+          transform: translateY(-4px);
+        }
+
+        .txn-table-row {
+          transition: background .15s ease;
+        }
+        .txn-table-row:hover {
+          background: #f8fafc !important;
+        }
+
+        .txn-action-btn {
+          background: transparent !important;
+          border: 1.5px solid #e2e8f0 !important;
+          border-radius: 0.5rem !important;
+          width: 34px !important;
+          height: 34px !important;
+          display: inline-flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          transition: all .2s ease !important;
+          cursor: pointer !important;
+        }
+        .txn-action-edit { color: #3b82f6 !important; }
+        .txn-action-edit:hover { background: #eff6ff !important; border-color: #93c5fd !important; transform: translateY(-2px); box-shadow: 0 3px 8px rgba(59,130,246,0.15); }
+        .txn-action-download { color: #8b5cf6 !important; }
+        .txn-action-download:hover { background: #f5f3ff !important; border-color: #c4b5fd !important; transform: translateY(-2px); box-shadow: 0 3px 8px rgba(139,92,246,0.15); }
+        .txn-action-delete { color: #ef4444 !important; }
+        .txn-action-delete:hover { background: #fef2f2 !important; border-color: #fca5a5 !important; transform: translateY(-2px); box-shadow: 0 3px 8px rgba(239,68,68,0.15); }
+
+        .txn-spinner {
+          width: 36px;
+          height: 36px;
+          border: 3px solid #e2e8f0;
+          border-top-color: #6366f1;
+          border-radius: 50%;
+          animation: spin .7s linear infinite;
+        }
+
+        .txn-modal-overlay {
+          position: fixed;
+          inset: 0;
+          background: rgba(15,23,42,0.55);
+          z-index: 1050;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          backdrop-filter: blur(6px);
+          animation: fadeIn .2s ease;
+        }
+
+        .txn-modal {
+          background: #fff;
+          border-radius: 1.25rem;
+          width: 100%;
+          max-width: 640px;
+          box-shadow: 0 25px 60px rgba(0,0,0,0.25), 0 0 0 1px rgba(255,255,255,0.05);
+          overflow: hidden;
+          animation: slideUp .3s ease;
+        }
+
+        .txn-modal-input {
+          border-radius: 0.65rem !important;
+          border: 2px solid #e2e8f0 !important;
+          padding: 0.6rem 0.9rem !important;
+          font-size: 0.9rem !important;
+          background: #f8fafc !important;
+          transition: all .2s ease !important;
+        }
+        .txn-modal-input:focus {
+          border-color: #6366f1 !important;
+          box-shadow: 0 0 0 3px rgba(99,102,241,0.1) !important;
+          background: #fff !important;
+        }
+      `}</style>
     </div>
   );
 };

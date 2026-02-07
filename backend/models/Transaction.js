@@ -18,6 +18,19 @@ const TransactionSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  paymentMethod: {
+    type: String,
+    enum: ['Bank Account', 'Hand Cash'],
+    default: 'Bank Account'
+  },
+  bankAccountId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'BankAccount'
+  },
+  handCashId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'HandCash'
+  },
   date: {
     type: Date,
     default: Date.now

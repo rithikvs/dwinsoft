@@ -1,10 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 const Invoices = () => {
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [transactions, setTransactions] = useState([]);
+  const [transactionLoading, setTransactionLoading] = useState(true);
+  const [transactionError, setTransactionError] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [formLoading, setFormLoading] = useState(false);
   const [formError, setFormError] = useState('');
@@ -19,11 +24,24 @@ const Invoices = () => {
     customerEmail: '',
     customerPhone: '',
     customerAddress: '',
-    paymentMethod: 'Cash',
-    paymentStatus: 'Pending',
+    paymentMethod: 'Bank Account',
+    paymentStatus: 'Paid',
+    bankAccountId: '',
+    handCashId: '',
     items: [{ description: '', quantity: 1, rate: 0 }],
     notes: '',
   });
+  const [bankAccounts, setBankAccounts] = useState([]);
+  const [handCashRecords, setHandCashRecords] = useState([]);
+
+  const companyDetails = {
+    name: 'DWINSOFT Technologies Pvt. Ltd.',
+    address: '123 Business Park, Tech Hub, Bangalore - 560001',
+    phone: '+91 80 1234 5678',
+    email: 'accounts@dwinsoft.com',
+    gstNumber: '29AABCU9603R1ZM',
+    website: 'www.dwinsoft.com'
+  };
 
   const fetchInvoices = async () => {
     setLoading(true);
@@ -41,9 +59,38 @@ const Invoices = () => {
     }
   };
 
+  // Fetch bank accounts and hand cash records
+  const fetchPaymentMethods = async () => {
+    try {
+      const [bankRes, cashRes] = await Promise.all([
+        axios.get('http://localhost:5000/api/bank-accounts'),
+        axios.get('http://localhost:5000/api/hand-cash')
+      ]);
+      setBankAccounts(bankRes.data);
+      setHandCashRecords(cashRes.data);
+    } catch (err) {
+      console.error('Error fetching payment methods:', err);
+    }
+  };
+
   useEffect(() => {
     fetchInvoices();
+    fetchPaymentMethods();
+    fetchTransactions();
   }, []);
+
+  const fetchTransactions = async () => {
+    setTransactionLoading(true);
+    setTransactionError('');
+    try {
+      const res = await axios.get('http://localhost:5000/api/transactions');
+      setTransactions(Array.isArray(res.data) ? res.data : []);
+    } catch (err) {
+      setTransactionError('Failed to load transactions');
+    } finally {
+      setTransactionLoading(false);
+    }
+  };
 
   const handleViewInvoice = (invoiceId) => {
     window.open(`http://localhost:5000/api/invoices/view/${invoiceId}`, '_blank');
@@ -69,7 +116,15 @@ const Invoices = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData(prev => ({ 
+      ...prev, 
+      [name]: value,
+      // Reset IDs when changing payment method
+      ...(name === 'paymentMethod' && {
+        bankAccountId: '',
+        handCashId: ''
+      })
+    }));
   };
 
   const handleItemChange = (index, field, value) => {
@@ -98,8 +153,286 @@ const Invoices = () => {
     return formData.items.reduce((sum, item) => sum + (item.quantity * item.rate), 0);
   };
 
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR',
+      minimumFractionDigits: 2
+    }).format(amount || 0);
+  };
+
+  const formatDate = (date) => {
+    return new Date(date).toLocaleDateString('en-IN', {
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric'
+    });
+  };
+
+  const generateInvoiceNumber = () => {
+    const date = new Date();
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+    return `INV/${year}${month}/${random}`;
+  };
+
+  const numberToWords = (num) => {
+    const ones = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine',
+      'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+    const tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+
+    if (num === 0) return 'Zero';
+
+    const convertLessThanThousand = (n) => {
+      if (n === 0) return '';
+      if (n < 20) return ones[n];
+      if (n < 100) return tens[Math.floor(n / 10)] + (n % 10 ? ' ' + ones[n % 10] : '');
+      return ones[Math.floor(n / 100)] + ' Hundred' + (n % 100 ? ' ' + convertLessThanThousand(n % 100) : '');
+    };
+
+    const convert = (n) => {
+      if (n < 1000) return convertLessThanThousand(n);
+      if (n < 100000) return convertLessThanThousand(Math.floor(n / 1000)) + ' Thousand' + (n % 1000 ? ' ' + convertLessThanThousand(n % 1000) : '');
+      if (n < 10000000) return convertLessThanThousand(Math.floor(n / 100000)) + ' Lakh' + (n % 100000 ? ' ' + convert(n % 100000) : '');
+      return convertLessThanThousand(Math.floor(n / 10000000)) + ' Crore' + (n % 10000000 ? ' ' + convert(n % 10000000) : '');
+    };
+
+    const rupees = Math.floor(num);
+    const paise = Math.round((num - rupees) * 100);
+
+    let result = convert(rupees) + ' Rupees';
+    if (paise > 0) {
+      result += ' and ' + convert(paise) + ' Paise';
+    }
+    return result + ' Only';
+  };
+
+  const getPaymentMethodLabel = (transaction) => {
+    if (transaction?.paymentMethod) return transaction.paymentMethod;
+    if (transaction?.bankAccountId) return 'Bank Account';
+    if (transaction?.handCashId) return 'Hand Cash';
+    return '';
+  };
+
+  const downloadTransactionInvoice = (transaction) => {
+    try {
+      const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const margin = 15;
+
+      const invoiceNumber = generateInvoiceNumber();
+      const invoiceDate = formatDate(new Date());
+      const transactionDate = formatDate(transaction.date || new Date());
+
+      const formatCurrencyPDF = (amount) => {
+        return `Rs. ${amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      };
+
+      const primaryColor = [30, 41, 59];
+      const secondaryColor = [148, 163, 184];
+      const accentColor = [14, 116, 144];
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(26);
+      doc.setTextColor(...primaryColor);
+      doc.text(companyDetails.name.split(' ')[0], margin, 25);
+
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(...secondaryColor);
+      doc.text('T E C H N O L O G I E S', margin, 30);
+
+      doc.setFontSize(32);
+      doc.setTextColor(226, 232, 240);
+      doc.text('INVOICE', pageWidth - margin, 35, { align: 'right' });
+      doc.setTextColor(...primaryColor);
+
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(80, 80, 80);
+      doc.text(companyDetails.address, margin, 45);
+      doc.text(`GSTIN: ${companyDetails.gstNumber} | Phone: ${companyDetails.phone}`, margin, 50);
+      doc.text(`Email: ${companyDetails.email} | Web: ${companyDetails.website}`, margin, 55);
+
+      doc.setDrawColor(220, 220, 220);
+      doc.setLineWidth(0.5);
+      doc.line(margin, 60, pageWidth - margin, 60);
+
+      const detailsY = 70;
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(10);
+      doc.setTextColor(...primaryColor);
+      doc.text('BILL TO:', margin, detailsY);
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(10);
+      doc.setTextColor(0, 0, 0);
+      doc.text(transaction.type === 'Income' ? 'Cash / General Customer' : 'Internal Expense', margin, detailsY + 6);
+      doc.setFontSize(9);
+      doc.setTextColor(100, 100, 100);
+      doc.text(transaction.category || 'General Category', margin, detailsY + 11);
+
+      doc.setFontSize(9);
+      doc.setTextColor(80, 80, 80);
+      doc.text(`Payment Method: ${getPaymentMethodLabel(transaction) || 'Bank Account'}`, margin, detailsY + 17);
+      doc.text(`Transaction Date: ${transactionDate}`, margin, detailsY + 22);
+
+      const col2X = pageWidth - margin - 60;
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(10);
+      doc.setTextColor(...primaryColor);
+      doc.text('INVOICE DETAILS:', col2X, detailsY);
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9);
+      doc.setTextColor(0, 0, 0);
+
+      doc.text('Invoice No:', col2X, detailsY + 6);
+      doc.text(invoiceNumber, pageWidth - margin, detailsY + 6, { align: 'right' });
+      doc.text('Date:', col2X, detailsY + 11);
+      doc.text(invoiceDate, pageWidth - margin, detailsY + 11, { align: 'right' });
+      doc.text('Status:', col2X, detailsY + 16);
+      doc.setTextColor(...accentColor);
+      doc.text('PAID', pageWidth - margin, detailsY + 16, { align: 'right' });
+      doc.setTextColor(0, 0, 0);
+
+      const GST_RATE = 18;
+      const CGST_RATE = GST_RATE / 2;
+      const SGST_RATE = GST_RATE / 2;
+      const baseAmount = transaction.amount;
+      const cgstAmount = baseAmount * (CGST_RATE / 100);
+      const sgstAmount = baseAmount * (SGST_RATE / 100);
+      const totalGST = cgstAmount + sgstAmount;
+      const grandTotal = baseAmount + totalGST;
+
+      autoTable(doc, {
+        startY: 105,
+        head: [['#', 'Description', 'HSN/SAC', 'Qty', 'Rate', 'Total']],
+        body: [
+          [
+            '1',
+            transaction.description || 'Service Charges',
+            '9983',
+            '1',
+            formatCurrencyPDF(baseAmount),
+            formatCurrencyPDF(baseAmount)
+          ]
+        ],
+        theme: 'grid',
+        headStyles: {
+          fillColor: primaryColor,
+          textColor: [255, 255, 255],
+          fontStyle: 'bold',
+          fontSize: 9,
+          halign: 'center',
+          cellPadding: 2
+        },
+        bodyStyles: {
+          fontSize: 9,
+          textColor: [50, 50, 50],
+          cellPadding: 2,
+          valign: 'middle'
+        },
+        columnStyles: {
+          0: { cellWidth: 10, halign: 'center' },
+          1: { cellWidth: 'auto' },
+          2: { cellWidth: 20, halign: 'center' },
+          3: { cellWidth: 15, halign: 'center' },
+          4: { cellWidth: 40, halign: 'right' },
+          5: { cellWidth: 45, halign: 'right' }
+        },
+        margin: { left: margin, right: margin }
+      });
+
+      const summaryY = doc.lastAutoTable.finalY + 5;
+      const leftColX = margin;
+      const rightColLabelX = pageWidth - margin - 70;
+      const rightColValueX = pageWidth - margin;
+
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(...primaryColor);
+      doc.text('Total In Words:', leftColX, summaryY + 10);
+      doc.setFont('helvetica', 'italic');
+      doc.setFontSize(8);
+      doc.setTextColor(80, 80, 80);
+      doc.text(numberToWords(grandTotal), leftColX, summaryY + 16, { maxWidth: 90 });
+
+      let currY = summaryY + 5;
+      const lineHeight = 6;
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9);
+      doc.setTextColor(0, 0, 0);
+      doc.text('Sub Total:', rightColLabelX, currY);
+      doc.text(formatCurrencyPDF(baseAmount), rightColValueX, currY, { align: 'right' });
+
+      currY += lineHeight;
+      doc.text(`CGST (${CGST_RATE}%):`, rightColLabelX, currY);
+      doc.text(formatCurrencyPDF(cgstAmount), rightColValueX, currY, { align: 'right' });
+
+      currY += lineHeight;
+      doc.text(`SGST (${SGST_RATE}%):`, rightColLabelX, currY);
+      doc.text(formatCurrencyPDF(sgstAmount), rightColValueX, currY, { align: 'right' });
+
+      currY += 3;
+      doc.setDrawColor(200, 200, 200);
+      doc.line(rightColLabelX, currY, pageWidth - margin, currY);
+
+      currY += 7;
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(12);
+      doc.setTextColor(...primaryColor);
+      doc.text('Grand Total:', rightColLabelX, currY);
+      doc.text(formatCurrencyPDF(grandTotal), rightColValueX, currY, { align: 'right' });
+
+      const termsY = pageHeight - 40;
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(8);
+      doc.setTextColor(100, 100, 100);
+      doc.text('Terms & Conditions:', margin, termsY);
+      doc.setFont('helvetica', 'normal');
+      doc.text('1. Payment is due on receipt.', margin, termsY + 5);
+      doc.text('2. Please include invoice number on your check.', margin, termsY + 9);
+
+      doc.text('Authorized Signatory', pageWidth - margin - 30, termsY + 15, { align: 'center' });
+      doc.setDrawColor(150, 150, 150);
+      doc.line(pageWidth - margin - 50, termsY + 10, pageWidth - margin - 10, termsY + 10);
+
+      doc.setFillColor(...primaryColor);
+      doc.rect(0, pageHeight - 8, pageWidth, 8, 'F');
+      doc.setFontSize(8);
+      doc.setTextColor(255, 255, 255);
+      doc.text('Thank you for your business!', pageWidth / 2, pageHeight - 2.5, { align: 'center' });
+
+      const blob = doc.output('blob');
+      const url = URL.createObjectURL(blob);
+      try {
+        window.open(url, '_blank');
+      } catch (e) {
+      }
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+    } catch (err) {
+      console.error('Invoice generation failed', err);
+      setTransactionError('Invoice generation failed');
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validate payment method selection
+    if (formData.paymentMethod === 'Bank Account' && !formData.bankAccountId) {
+      setFormError('Please select a bank account');
+      return;
+    }
+    if (formData.paymentMethod === 'Hand Cash' && !formData.handCashId) {
+      setFormError('Please select a hand cash record');
+      return;
+    }
+
     setFormLoading(true);
     setFormError('');
     setFormSuccess('');
@@ -110,7 +443,7 @@ const Invoices = () => {
         company: {
           name: formData.companyName,
           address: formData.companyAddress,
-          gst: formData.companyGST,
+          gstNumber: formData.companyGST,
         },
         customer: {
           name: formData.customerName,
@@ -121,6 +454,8 @@ const Invoices = () => {
         items: formData.items,
         paymentMethod: formData.paymentMethod,
         paymentStatus: formData.paymentStatus,
+        bankAccountId: formData.bankAccountId,
+        handCashId: formData.handCashId,
         notes: formData.notes,
       };
 
@@ -137,8 +472,10 @@ const Invoices = () => {
         customerEmail: '',
         customerPhone: '',
         customerAddress: '',
-        paymentMethod: 'Cash',
-        paymentStatus: 'Pending',
+        paymentMethod: 'Bank Account',
+        paymentStatus: 'Paid',
+        bankAccountId: '',
+        handCashId: '',
         items: [{ description: '', quantity: 1, rate: 0 }],
         notes: '',
       });
@@ -273,6 +610,75 @@ const Invoices = () => {
         >
           {showForm ? '✕ Close Form' : '+ Create Invoice'}
         </button>
+      </div>
+
+      <div style={{ marginBottom: '2rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+          <div>
+            <h3 style={{ margin: 0, color: '#0f172a' }}>Transaction Invoices</h3>
+            <div style={{ color: '#64748b', fontSize: '0.9rem' }}>Generate invoices directly from your transactions</div>
+          </div>
+        </div>
+
+        {transactionError && (
+          <div style={{ padding: '0.75rem 1rem', background: '#fee2e2', color: '#dc2626', borderRadius: '10px', marginBottom: '1rem' }}>
+            {transactionError}
+          </div>
+        )}
+
+        <div className="row g-3">
+          {transactionLoading ? (
+            <div className="col-12">
+              <div style={{ padding: '1rem', background: '#f8fafc', borderRadius: '12px', textAlign: 'center' }}>
+                Loading transactions...
+              </div>
+            </div>
+          ) : transactions.length === 0 ? (
+            <div className="col-12">
+              <div style={{ padding: '1rem', background: '#f8fafc', borderRadius: '12px', textAlign: 'center', color: '#64748b' }}>
+                No transactions found.
+              </div>
+            </div>
+          ) : (
+            transactions.map((t) => (
+              <div className="col-12 col-md-6 col-lg-4" key={t._id}>
+                <div className="card h-100 border-0" style={{ boxShadow: '0 10px 30px rgba(15, 23, 42, 0.08)', borderRadius: '16px' }}>
+                  <div className="card-body" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontSize: '0.85rem', color: '#94a3b8' }}>{formatDate(t.date)}</span>
+                      <span className={`badge ${t.type === 'Income' ? 'bg-success' : 'bg-danger'}`}>
+                        {t.type}
+                      </span>
+                    </div>
+
+                    <div style={{ fontWeight: 700, color: '#0f172a', fontSize: '1.05rem' }}>{t.description}</div>
+
+                    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                      <span className="badge bg-secondary">{t.category || 'General'}</span>
+                      <span className={`badge ${getPaymentMethodLabel(t) === 'Hand Cash' ? 'bg-warning text-dark' : 'bg-info'}`}>
+                        {getPaymentMethodLabel(t) || 'Bank Account'}
+                      </span>
+                    </div>
+
+                    <div style={{ fontSize: '1.35rem', fontWeight: 700, color: t.type === 'Income' ? '#16a34a' : '#dc2626' }}>
+                      {t.type === 'Income' ? '+' : '-'}{formatCurrency(t.amount)}
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '0.5rem', marginTop: 'auto' }}>
+                      <button
+                        type="button"
+                        className="btn btn-sm btn-outline-primary"
+                        onClick={() => downloadTransactionInvoice(t)}
+                      >
+                        Generate Invoice
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
       </div>
 
       {/* Invoice Creation Form */}
@@ -483,20 +889,61 @@ const Invoices = () => {
               </div>
               <div style={formStyles.row}>
                 <div style={formStyles.inputGroup}>
-                  <label style={formStyles.label}>Payment Method</label>
+                  <label style={formStyles.label}>Payment Method *</label>
                   <select
                     name="paymentMethod"
                     value={formData.paymentMethod}
                     onChange={handleInputChange}
                     style={formStyles.select}
+                    required
                   >
-                    <option value="Cash">Cash</option>
-                    <option value="Bank Transfer">Bank Transfer</option>
-                    <option value="UPI">UPI</option>
-                    <option value="Card">Card</option>
+                    <option value="">Select Payment Method</option>
+                    <option value="Bank Account">Bank Account</option>
+                    <option value="Hand Cash">Hand Cash</option>
                     <option value="Cheque">Cheque</option>
                   </select>
                 </div>
+                
+                {formData.paymentMethod === 'Bank Account' && (
+                  <div style={formStyles.inputGroup}>
+                    <label style={formStyles.label}>Select Bank Account *</label>
+                    <select
+                      name="bankAccountId"
+                      value={formData.bankAccountId}
+                      onChange={handleInputChange}
+                      style={formStyles.select}
+                      required
+                    >
+                      <option value="">Choose Bank Account</option>
+                      {bankAccounts.map(acc => (
+                        <option key={acc._id} value={acc._id}>
+                          {acc.accountHolder} - {acc.accountNumber}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+                
+                {formData.paymentMethod === 'Hand Cash' && (
+                  <div style={formStyles.inputGroup}>
+                    <label style={formStyles.label}>Select Hand Cash Record *</label>
+                    <select
+                      name="handCashId"
+                      value={formData.handCashId}
+                      onChange={handleInputChange}
+                      style={formStyles.select}
+                      required
+                    >
+                      <option value="">Choose Hand Cash</option>
+                      {handCashRecords.map(hc => (
+                        <option key={hc._id} value={hc._id}>
+                          {hc.holder} - ₹{hc.amount.toLocaleString('en-IN')}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+                
                 <div style={formStyles.inputGroup}>
                   <label style={formStyles.label}>Payment Status</label>
                   <select
@@ -505,10 +952,10 @@ const Invoices = () => {
                     onChange={handleInputChange}
                     style={formStyles.select}
                   >
-                    <option value="Pending">Pending</option>
                     <option value="Paid">Paid</option>
-                    <option value="Partial">Partial</option>
-                    <option value="Overdue">Overdue</option>
+                    <option value="Unpaid">Unpaid</option>
+                    <option value="Pending">Pending</option>
+                    <option value="Cancelled">Cancelled</option>
                   </select>
                 </div>
               </div>
@@ -545,81 +992,6 @@ const Invoices = () => {
         </div>
       )}
 
-      {/* Invoices Table */}
-      <div style={formStyles.container}>
-        <div style={{ fontWeight: '600', fontSize: '1.125rem', marginBottom: '1rem', color: '#1e293b' }}>
-          All Invoices
-        </div>
-        {loading ? (
-          <div style={{ textAlign: 'center', color: '#64748b', padding: '2rem' }}>Loading...</div>
-        ) : error ? (
-          <div style={{ textAlign: 'center', color: '#dc2626', padding: '2rem' }}>{error}</div>
-        ) : invoices.length === 0 ? (
-          <div style={{ textAlign: 'center', color: '#64748b', padding: '2rem' }}>No invoices found</div>
-        ) : (
-          <div style={{ overflowX: 'auto' }}>
-            <table style={formStyles.itemsTable}>
-              <thead>
-                <tr>
-                  <th style={formStyles.th}>Invoice #</th>
-                  <th style={formStyles.th}>Company</th>
-                  <th style={formStyles.th}>Customer</th>
-                  <th style={formStyles.th}>Payment</th>
-                  <th style={formStyles.th}>Status</th>
-                  <th style={{ ...formStyles.th, textAlign: 'right' }}>Total</th>
-                  <th style={formStyles.th}>Date</th>
-                  <th style={formStyles.th}>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {invoices.map(inv => (
-                  <tr key={inv._id}>
-                    <td style={{ ...formStyles.td, fontWeight: '600', color: '#667eea' }}>{inv.invoiceNumber}</td>
-                    <td style={formStyles.td}>{inv.company?.name}</td>
-                    <td style={formStyles.td}>
-                      <div>{inv.customer?.name}</div>
-                      <div style={{ fontSize: '0.8rem', color: '#64748b' }}>{inv.customer?.email}</div>
-                    </td>
-                    <td style={formStyles.td}>{inv.paymentMethod}</td>
-                    <td style={formStyles.td}>
-                      <span style={{
-                        padding: '0.25rem 0.75rem',
-                        borderRadius: '9999px',
-                        fontSize: '0.75rem',
-                        fontWeight: '600',
-                        background: inv.paymentStatus === 'Paid' ? '#d1fae5' : inv.paymentStatus === 'Pending' ? '#fef3c7' : '#fee2e2',
-                        color: inv.paymentStatus === 'Paid' ? '#059669' : inv.paymentStatus === 'Pending' ? '#d97706' : '#dc2626',
-                      }}>
-                        {inv.paymentStatus}
-                      </span>
-                    </td>
-                    <td style={{ ...formStyles.td, textAlign: 'right', fontWeight: '600' }}>
-                      {inv.grandTotal?.toLocaleString?.('en-IN', { style: 'currency', currency: 'INR' })}
-                    </td>
-                    <td style={formStyles.td}>{inv.invoiceDate ? new Date(inv.invoiceDate).toLocaleDateString() : ''}</td>
-                    <td style={formStyles.td}>
-                      <div style={{ display: 'flex', gap: '0.5rem' }}>
-                        <button
-                          onClick={() => handleViewInvoice(inv._id)}
-                          style={{ ...formStyles.btn, padding: '0.375rem 0.75rem', fontSize: '0.8rem', background: '#e0e7ff', color: '#4f46e5' }}
-                        >
-                          View
-                        </button>
-                        <button
-                          onClick={() => handleDownloadInvoice(inv._id, inv.invoiceNumber)}
-                          style={{ ...formStyles.btn, padding: '0.375rem 0.75rem', fontSize: '0.8rem', background: '#d1fae5', color: '#059669' }}
-                        >
-                          Download
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
     </div>
   );
 };

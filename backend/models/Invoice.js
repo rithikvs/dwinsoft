@@ -3,10 +3,14 @@ const mongoose = require('mongoose');
 const InvoiceSchema = new mongoose.Schema({
   invoiceNumber: { type: String, required: true, unique: true },
   invoiceDate: { type: Date, default: Date.now },
-  order: { type: mongoose.Schema.Types.ObjectId, ref: 'Order', required: true },
-  transaction: { type: mongoose.Schema.Types.ObjectId, ref: 'Transaction', required: true },
-  paymentMethod: { type: String, required: true },
-  paymentStatus: { type: String, enum: ['Paid', 'Unpaid', 'Cancelled'], default: 'Paid' },
+  order: { type: mongoose.Schema.Types.ObjectId, ref: 'Order' },
+  transaction: { type: mongoose.Schema.Types.ObjectId, ref: 'Transaction' },
+  paymentMethod: { type: String, enum: ['Bank Account', 'Hand Cash', 'Cash', 'Cheque'], required: true },
+  paymentStatus: { type: String, enum: ['Paid', 'Unpaid', 'Cancelled', 'Pending'], default: 'Paid' },
+
+  // Link to HandCash if payment method is Hand Cash
+  handCash: { type: mongoose.Schema.Types.ObjectId, ref: 'HandCash' },
+  bankAccount: { type: mongoose.Schema.Types.ObjectId, ref: 'BankAccount' },
 
   // Seller/Company details
   company: {
@@ -18,8 +22,9 @@ const InvoiceSchema = new mongoose.Schema({
   // Customer details
   customer: {
     name: { type: String, required: true },
-    email: { type: String, required: true },
-    phone: { type: String, required: true },
+    email: { type: String },
+    phone: { type: String },
+    address: { type: String },
   },
 
   // Item table
