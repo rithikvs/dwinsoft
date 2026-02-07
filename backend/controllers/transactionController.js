@@ -1,5 +1,4 @@
 const Transaction = require('../models/Transaction');
-const Employee = require('../models/Employee');
 
 // Get all transactions (Admin/Accountant), payroll only for HR, none for Employee
 exports.getTransactions = async (req, res) => {
