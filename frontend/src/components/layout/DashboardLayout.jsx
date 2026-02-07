@@ -38,7 +38,7 @@ const DashboardLayout = () => {
             {/* Sidebar */}
             <div className={theme === 'dark' ? 'bg-dark border-end p-0 d-flex flex-column' : 'bg-white border-end p-0 d-flex flex-column'} style={{ width: '250px', flexShrink: 0, minHeight: '100vh' }}>
                 <div className="d-flex align-items-center justify-content-center py-4 border-bottom">
-                    <img src="image.png" alt="Dwinsoft Logo" style={{ width: 300, height: 70, marginBottom: 8, objectFit: 'contain', filter: theme === 'dark' ? 'brightness(0.9)' : undefined }} />
+                    <img src="/image.png" alt="Dwinsoft Logo" style={{ width: 300, height: 70, marginBottom: 8, objectFit: 'contain', filter: theme === 'dark' ? 'brightness(0.9)' : undefined }} />
                 </div>
                 <Nav className="flex-column flex-grow-1 pt-3">
                     {navLinks.filter(link => link.roles.includes(role)).map(link => (

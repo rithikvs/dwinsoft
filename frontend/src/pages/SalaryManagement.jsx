@@ -29,6 +29,7 @@ const SalaryManagement = () => {
   const fetchStaff = async () => {
     try {
       setLoading(true);
+      setError('');
       const res = await axios.get(`${API_BASE_URL}/api/salary/staff`);
       setStaff(res.data);
     } catch (err) {
@@ -41,6 +42,7 @@ const SalaryManagement = () => {
   const fetchSalaryRecords = async () => {
     try {
       setSalaryLoading(true);
+      setError('');
       const res = await axios.get(`${API_BASE_URL}/api/salary/records?month=${selectedMonth}&year=${selectedYear}`);
       setSalaryRecords(res.data);
     } catch (err) {
