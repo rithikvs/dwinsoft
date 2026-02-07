@@ -1,5 +1,6 @@
 import React, { createContext, useState, useEffect } from 'react';
 import axios from 'axios';
+import API_BASE_URL from '../utils/api';
 
 export const AuthContext = createContext();
 
@@ -20,7 +21,7 @@ export const AuthProvider = ({ children }) => {
 
     const fetchUser = async () => {
         try {
-            const res = await axios.get('http://localhost:5000/api/auth/me');
+            const res = await axios.get(`${API_BASE_URL}/api/auth/me`);
             setUser({ ...res.data, token: token }); // Ensure user object validates roles correctly
         } catch (error) {
             console.error('Error fetching user', error);
@@ -31,7 +32,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     const login = async (email, password) => {
-        const res = await axios.post('http://localhost:5000/api/auth/login', {
+        const res = await axios.post(`${API_BASE_URL}/api/auth/login`, {
             email,
             password,
         });

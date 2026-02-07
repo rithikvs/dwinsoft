@@ -1,6 +1,7 @@
 
 import React, { useEffect, useState, useContext } from 'react';
 import axios from 'axios';
+import API_BASE_URL from '../utils/api';
 import { AuthContext } from '../context/AuthContext';
 import PageHeader from '../components/ui/PageHeader';
 import SectionCard from '../components/ui/SectionCard';
@@ -16,7 +17,7 @@ const RecycleBin = () => {
       setLoading(true);
       setError('');
       try {
-        const res = await axios.get('http://localhost:5000/api/recycle-bin');
+        const res = await axios.get(`${API_BASE_URL}/api/recycle-bin`);
         setDeletedTransactions(res.data);
       } catch (err) {
         setError('Failed to load recycle bin');

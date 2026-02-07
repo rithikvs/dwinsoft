@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import API_BASE_URL from '../utils/api';
 
 const initialForm = {
   holder: '',
@@ -21,7 +22,7 @@ const HandCash = () => {
     setLoading(true);
     setError('');
     try {
-      const res = await axios.get('http://localhost:5000/api/hand-cash');
+      const res = await axios.get(`${API_BASE_URL}/api/hand-cash`);
       setHandCash(res.data);
     } catch (err) {
       setError('Failed to load hand cash records');
@@ -53,10 +54,10 @@ const HandCash = () => {
     try {
       const payload = { ...form, amount: Number(form.amount) };
       if (editingId) {
-        await axios.put(`http://localhost:5000/api/hand-cash/${editingId}`, payload);
+        await axios.put(`${API_BASE_URL}/api/hand-cash/${editingId}`, payload);
         setSuccess('Hand cash record updated successfully');
       } else {
-        await axios.post('http://localhost:5000/api/hand-cash', payload);
+        await axios.post(`${API_BASE_URL}/api/hand-cash`, payload);
         setSuccess('Hand cash record added successfully');
       }
       setForm(initialForm);
@@ -82,7 +83,7 @@ const HandCash = () => {
   const handleDelete = async (id) => {
     if (!window.confirm('Are you sure you want to delete this record?')) return;
     try {
-      await axios.delete(`http://localhost:5000/api/hand-cash/${id}`);
+      await axios.delete(`${API_BASE_URL}/api/hand-cash/${id}`);
       setSuccess('Hand cash record deleted successfully');
       fetchHandCash();
       setTimeout(() => setSuccess(''), 3000);

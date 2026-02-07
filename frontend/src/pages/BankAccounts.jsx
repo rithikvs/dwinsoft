@@ -1,6 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import API_BASE_URL from '../utils/api';
 import PageHeader from '../components/ui/PageHeader';
 import SectionCard from '../components/ui/SectionCard';
 
@@ -14,7 +15,7 @@ const BankAccounts = () => {
       setLoading(true);
       setError('');
       try {
-        const res = await axios.get('http://localhost:5000/api/bank-accounts');
+        const res = await axios.get(`${API_BASE_URL}/api/bank-accounts`);
         setAccounts(res.data);
       } catch (err) {
         setError('Failed to load bank accounts');

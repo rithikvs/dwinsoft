@@ -2,6 +2,7 @@ import React, { useState, useContext, useEffect } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { ThemeContext } from '../context/ThemeContext';
 import axios from 'axios';
+import API_BASE_URL from '../utils/api';
 import PageHeader from '../components/ui/PageHeader';
 import SectionCard from '../components/ui/SectionCard';
 
@@ -25,7 +26,7 @@ const Settings = () => {
     setSuccess(false);
     setError('');
     try {
-      await axios.put('http://localhost:5000/api/auth/me', { username: name, email }, {
+      await axios.put(`${API_BASE_URL}/api/auth/me`, { username: name, email }, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setSuccess(true);

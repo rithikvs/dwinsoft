@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useContext } from 'react';
 import axios from 'axios';
+import API_BASE_URL from '../utils/api';
 import { AuthContext } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
@@ -15,8 +16,8 @@ const EmployeeDashboard = () => {
       try {
         setLoading(true);
         const [invRes, debtRes] = await Promise.all([
-          axios.get('http://localhost:5000/api/invoices').catch(() => ({ data: [] })),
-          axios.get('http://localhost:5000/api/debts').catch(() => ({ data: [] })),
+          axios.get(`${API_BASE_URL}/api/invoices`).catch(() => ({ data: [] })),
+          axios.get(`${API_BASE_URL}/api/debts`).catch(() => ({ data: [] })),
         ]);
         const invData = Array.isArray(invRes.data) ? invRes.data : invRes.data.invoices || [];
         setInvoices(invData.slice(0, 5));

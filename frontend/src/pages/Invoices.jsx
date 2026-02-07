@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useContext } from 'react';
 import axios from 'axios';
+import API_BASE_URL from '../utils/api';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { AuthContext } from '../context/AuthContext';
@@ -50,7 +51,7 @@ const Invoices = () => {
     setError('');
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.get('http://localhost:5000/api/invoices', {
+      const res = await axios.get(`${API_BASE_URL}/api/invoices`, {
         headers: { 'x-auth-token': token }
       });
       setInvoices(Array.isArray(res.data) ? res.data : res.data.invoices || []);
@@ -65,8 +66,8 @@ const Invoices = () => {
   const fetchPaymentMethods = async () => {
     try {
       const [bankRes, cashRes] = await Promise.all([
-        axios.get('http://localhost:5000/api/bank-accounts'),
-        axios.get('http://localhost:5000/api/hand-cash')
+        axios.get(`${API_BASE_URL}/api/bank-accounts`),
+        axios.get(`${API_BASE_URL}/api/hand-cash`)
       ]);
       setBankAccounts(bankRes.data);
       setHandCashRecords(cashRes.data);
@@ -86,7 +87,7 @@ const Invoices = () => {
     setTransactionError('');
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.get('http://localhost:5000/api/transactions', {
+      const res = await axios.get(`${API_BASE_URL}/api/transactions`, {
         headers: { 'x-auth-token': token }
       });
       setTransactions(Array.isArray(res.data) ? res.data : []);
@@ -107,7 +108,7 @@ const Invoices = () => {
     try {
       const token = localStorage.getItem('token');
       const endpoint = currentlyApproved ? 'revoke' : 'approve';
-      await axios.put(`http://localhost:5000/api/invoices/${endpoint}/${invoiceId}`, {}, {
+      await axios.put(`${API_BASE_URL}/api/invoices/${endpoint}/${invoiceId}`, {}, {
         headers: { 'x-auth-token': token }
       });
       fetchInvoices();
@@ -123,7 +124,7 @@ const Invoices = () => {
   const handleRequestAccess = async (invoiceId) => {
     try {
       const token = localStorage.getItem('token');
-      await axios.put(`http://localhost:5000/api/invoices/request-access/${invoiceId}`, {}, {
+      await axios.put(`${API_BASE_URL}/api/invoices/request-access/${invoiceId}`, {}, {
         headers: { 'x-auth-token': token }
       });
       fetchInvoices();
@@ -135,7 +136,7 @@ const Invoices = () => {
   // Employee: Request invoice access for a transaction
   const handleRequestTransactionInvoiceAccess = async (transactionId) => {
     try {
-      await axios.put(`http://localhost:5000/api/transactions/request-invoice-access/${transactionId}`);
+      await axios.put(`${API_BASE_URL}/api/transactions/request-invoice-access/${transactionId}`);
       fetchTransactions();
     } catch (err) {
       alert(err.response?.data?.message || 'Failed to send access request');
@@ -146,7 +147,7 @@ const Invoices = () => {
   const handleToggleTransactionInvoiceAccess = async (transactionId, currentlyApproved) => {
     try {
       const endpoint = currentlyApproved ? 'revoke-invoice-access' : 'approve-invoice-access';
-      await axios.put(`http://localhost:5000/api/transactions/${endpoint}/${transactionId}`);
+      await axios.put(`${API_BASE_URL}/api/transactions/${endpoint}/${transactionId}`);
       fetchTransactions();
     } catch (err) {
       alert(err.response?.data?.message || 'Failed to update access');
@@ -155,13 +156,13 @@ const Invoices = () => {
 
   const handleViewInvoice = (invoiceId) => {
     const token = localStorage.getItem('token');
-    window.open(`http://localhost:5000/api/invoices/view/${invoiceId}?token=${token}`, '_blank');
+    window.open(`${API_BASE_URL}/api/invoices/view/${invoiceId}?token=${token}`, '_blank');
   };
 
   const handleDownloadInvoice = async (invoiceId, invoiceNumber) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get(`http://localhost:5000/api/invoices/download/${invoiceId}`, {
+      const response = await axios.get(`${API_BASE_URL}/api/invoices/download/${invoiceId}`, {
         responseType: 'blob',
         headers: { 'x-auth-token': token }
       });
@@ -523,7 +524,7 @@ const Invoices = () => {
         notes: formData.notes,
       };
 
-      await axios.post('http://localhost:5000/api/invoices', payload, {
+      await axios.post(`${API_BASE_URL}/api/invoices`, payload, {
         headers: { 'x-auth-token': token }
       });
 

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import API_BASE_URL from '../utils/api';
 import PageHeader from '../components/ui/PageHeader';
 import SectionCard from '../components/ui/SectionCard';
 
@@ -18,7 +19,7 @@ const CreateUser = () => {
     const fetchUsers = async () => {
       try {
         const token = localStorage.getItem('token');
-        const res = await axios.get('http://localhost:5000/api/auth/users', {
+        const res = await axios.get(`${API_BASE_URL}/api/auth/users`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         setUsers(res.data);
@@ -46,7 +47,7 @@ const CreateUser = () => {
     try {
       const token = localStorage.getItem('token');
       await axios.post(
-        'http://localhost:5000/api/auth/create-user',
+        `${API_BASE_URL}/api/auth/create-user`,
         { username, email, password, role },
         { headers: { Authorization: `Bearer ${token}` } }
       );

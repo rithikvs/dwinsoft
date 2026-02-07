@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useContext, useCallback } from 'react';
 import axios from 'axios';
+import API_BASE_URL from '../utils/api';
 import { AuthContext } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import EmployeeDashboard from './EmployeeDashboard';
@@ -32,11 +33,11 @@ const Dashboard = () => {
             setLoading(true);
 
             // Fetch all transactions
-            const transRes = await axios.get('http://localhost:5000/api/transactions');
+            const transRes = await axios.get(`${API_BASE_URL}/api/transactions`);
             const transactions = transRes.data;
 
             // Fetch bank accounts
-            const bankRes = await axios.get('http://localhost:5000/api/bank-accounts');
+            const bankRes = await axios.get(`${API_BASE_URL}/api/bank-accounts`);
             const bankAccounts = bankRes.data;
 
             let income = 0;

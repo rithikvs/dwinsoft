@@ -1,6 +1,7 @@
 
 import React, { useEffect, useState, useContext } from 'react';
 import axios from 'axios';
+import API_BASE_URL from '../utils/api';
 import { AuthContext } from '../context/AuthContext';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -65,8 +66,8 @@ const Transactions = () => {
   const fetchPaymentMethods = async () => {
     try {
       const [bankRes, cashRes] = await Promise.all([
-        axios.get('http://localhost:5000/api/bank-accounts'),
-        axios.get('http://localhost:5000/api/hand-cash')
+        axios.get(`${API_BASE_URL}/api/bank-accounts`),
+        axios.get(`${API_BASE_URL}/api/hand-cash`)
       ]);
       setBankAccounts(bankRes.data);
       setHandCashRecords(cashRes.data);
@@ -80,7 +81,7 @@ const Transactions = () => {
     setLoading(true);
     setError('');
     try {
-      let url = 'http://localhost:5000/api/transactions';
+      let url = `${API_BASE_URL}/api/transactions`;
       if (filter.type || filter.category || filter.startDate || filter.endDate || filter.paymentMethod) {
         const params = [];
         if (filter.type) params.push(`type=${filter.type}`);
@@ -104,7 +105,7 @@ const Transactions = () => {
     e.preventDefault();
     setFormLoading(true);
     try {
-      await axios.post('http://localhost:5000/api/hand-cash', {
+      await axios.post(`${API_BASE_URL}/api/hand-cash`, {
         holder: handCashForm.holder,
         amount: Number(handCashForm.amount),
         description: handCashForm.description
@@ -126,7 +127,7 @@ const Transactions = () => {
     e.preventDefault();
     setFormLoading(true);
     try {
-      await axios.post('http://localhost:5000/api/bank-accounts', {
+      await axios.post(`${API_BASE_URL}/api/bank-accounts`, {
         accountNumber: bankAccountForm.accountNumber,
         accountHolder: bankAccountForm.accountHolder,
         bankName: bankAccountForm.bankName,
@@ -191,10 +192,10 @@ const Transactions = () => {
       };
       
       if (editingId) {
-        await axios.put(`http://localhost:5000/api/transactions/${editingId}`, payload);
+        await axios.put(`${API_BASE_URL}/api/transactions/${editingId}`, payload);
         setSuccess('Transaction updated successfully');
       } else {
-        await axios.post('http://localhost:5000/api/transactions', payload);
+        await axios.post(`${API_BASE_URL}/api/transactions`, payload);
         setSuccess('Transaction added successfully');
       }
       setForm(initialForm);
@@ -224,7 +225,7 @@ const Transactions = () => {
   const handleDelete = async id => {
     if (!window.confirm('Delete this transaction?')) return;
     try {
-      await axios.delete(`http://localhost:5000/api/transactions/${id}`);
+      await axios.delete(`${API_BASE_URL}/api/transactions/${id}`);
       setSuccess('Transaction deleted successfully');
       fetchTransactions();
       setTimeout(() => setSuccess(''), 3000);
