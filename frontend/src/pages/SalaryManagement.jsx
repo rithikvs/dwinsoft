@@ -26,16 +26,13 @@ const SalaryManagement = () => {
   const [salaryForm, setSalaryForm] = useState({ userId: '', basicSalary: '', bonus: '0', deductions: '0', notes: '', status: 'Pending' });
   const [salaryLoading, setSalaryLoading] = useState(false);
 
-  const token = localStorage.getItem('token');
-  const headers = { Authorization: `Bearer ${token}` };
-
   const fetchStaff = async () => {
     try {
       setLoading(true);
-      const res = await axios.get(`${API_BASE_URL}/api/salary/staff`, { headers });
+      const res = await axios.get(`${API_BASE_URL}/api/salary/staff`);
       setStaff(res.data);
     } catch (err) {
-      setError('Failed to load staff data');
+      setError(err.response?.data?.message || 'Failed to load staff data');
     } finally {
       setLoading(false);
     }
@@ -44,10 +41,10 @@ const SalaryManagement = () => {
   const fetchSalaryRecords = async () => {
     try {
       setSalaryLoading(true);
-      const res = await axios.get(`${API_BASE_URL}/api/salary/records?month=${selectedMonth}&year=${selectedYear}`, { headers });
+      const res = await axios.get(`${API_BASE_URL}/api/salary/records?month=${selectedMonth}&year=${selectedYear}`);
       setSalaryRecords(res.data);
     } catch (err) {
-      setError('Failed to load salary records');
+      setError(err.response?.data?.message || 'Failed to load salary records');
     } finally {
       setSalaryLoading(false);
     }
@@ -69,7 +66,7 @@ const SalaryManagement = () => {
   const cancelEdit = () => { setEditingId(null); setEditData({}); };
   const saveEdit = async (id) => {
     try {
-      await axios.put(`${API_BASE_URL}/api/salary/staff/${id}`, editData, { headers });
+      await axios.put(`${API_BASE_URL}/api/salary/staff/${id}`, editData);
       setSuccess('Updated successfully!');
       setEditingId(null);
       fetchStaff();
@@ -87,7 +84,7 @@ const SalaryManagement = () => {
     try {
       await axios.post(`${API_BASE_URL}/api/salary/records`, {
         ...salaryForm, month: selectedMonth, year: selectedYear,
-      }, { headers });
+      });
       setSuccess('Salary record saved!');
       setShowAddForm(false);
       setSalaryForm({ userId: '', basicSalary: '', bonus: '0', deductions: '0', notes: '', status: 'Pending' });
@@ -102,7 +99,7 @@ const SalaryManagement = () => {
   const handleDeleteRecord = async (id) => {
     if (!window.confirm('Delete this salary record?')) return;
     try {
-      await axios.delete(`${API_BASE_URL}/api/salary/records/${id}`, { headers });
+      await axios.delete(`${API_BASE_URL}/api/salary/records/${id}`);
       setSuccess('Record deleted');
       fetchSalaryRecords();
       setTimeout(() => setSuccess(''), 3000);
@@ -115,7 +112,7 @@ const SalaryManagement = () => {
         userId: record.user._id, month: record.month, year: record.year,
         basicSalary: record.basicSalary, bonus: record.bonus, deductions: record.deductions,
         notes: record.notes, status: record.status === 'Paid' ? 'Pending' : 'Paid',
-      }, { headers });
+      });
       fetchSalaryRecords();
       setSuccess(`Marked as ${record.status === 'Paid' ? 'Pending' : 'Paid'}`);
       setTimeout(() => setSuccess(''), 3000);
