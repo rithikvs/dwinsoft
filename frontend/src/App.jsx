@@ -15,6 +15,7 @@ import BankAccounts from './pages/BankAccounts';
 import HandCash from './pages/HandCash';
 import RecycleBin from './pages/RecycleBin';
 import Settings from './pages/Settings';
+import EmployeeProfile from './pages/EmployeeProfile';
 
 function App() {
   return (
@@ -76,7 +77,7 @@ function App() {
                 path="/employee"
                 element={
                   <ProtectedRoute roles={['Employee']}>
-                    <div style={{ padding: '2rem' }}><h2>Employee</h2><p>View own profile, payslips, tax details.</p></div>
+                    <EmployeeProfile />
                   </ProtectedRoute>
                 }
               />
@@ -89,8 +90,8 @@ function App() {
                 }
               />
               <Route path="/access-denied" element={<AccessDenied />} />
-              {/* Transactions: Admin, Accountant (full); HR (payroll view); Employee (no access) */}
-              <Route path="/transactions" element={<ProtectedRoute roles={['Admin', 'Accountant', 'HR']}><Transactions /></ProtectedRoute>} />
+              {/* Transactions: Admin, Accountant (full); HR (payroll view); Employee (read-only view) */}
+              <Route path="/transactions" element={<ProtectedRoute roles={['Admin', 'Accountant', 'HR', 'Employee']}><Transactions /></ProtectedRoute>} />
               {/* Invoices: Admin, Accountant (full); HR (salary view); Employee (own payslip only) */}
               <Route path="/invoices" element={<ProtectedRoute roles={['Admin', 'Accountant', 'HR', 'Employee']}><Invoices /></ProtectedRoute>} />
               {/* Debts: Admin, Accountant (full); HR (deductions view); Employee (own deductions only) */}
@@ -99,6 +100,8 @@ function App() {
               <Route path="/bank-accounts" element={<ProtectedRoute roles={['Admin', 'Accountant', 'HR']}><BankAccounts /></ProtectedRoute>} />
               {/* Hand Cash: Admin, Accountant (full); HR (salary cash view); Employee (no access) */}
               <Route path="/hand-cash" element={<ProtectedRoute roles={['Admin', 'Accountant', 'HR']}><HandCash /></ProtectedRoute>} />
+              {/* Employee Profile */}
+              <Route path="/employee/profile" element={<ProtectedRoute roles={['Employee']}><EmployeeProfile /></ProtectedRoute>} />
               {/* Recycle Bin: Admin (all); Accountant (financial only); HR (employee only); Employee (no access) */}
               <Route path="/recycle-bin" element={<ProtectedRoute roles={['Admin', 'Accountant', 'HR']}><RecycleBin /></ProtectedRoute>} />
               {/* Settings: Admin (all); Accountant (finance); HR (payroll); Employee (profile only) */}

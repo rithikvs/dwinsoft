@@ -49,6 +49,12 @@ const InvoiceSchema = new mongoose.Schema({
   pdfPath: { type: String },
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   status: { type: String, enum: ['Active', 'Cancelled'], default: 'Active' },
+
+  // HR approval for employee access
+  employeeAccessApproved: { type: Boolean, default: false },
+  approvedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  approvedAt: { type: Date },
+
   createdAt: { type: Date, default: Date.now },
 });
 

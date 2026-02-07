@@ -74,8 +74,12 @@ exports.getInvoiceById = async (req, res) => {
   try {
     const invoice = await Invoice.findById(req.params.invoiceId).populate('order transaction createdBy');
     if (!invoice) return res.status(404).json({ message: 'Invoice not found' });
-    // Security: Only allow owner or admin
-    if (req.user.role !== 'Admin' && String(invoice.customer.email) !== req.user.email) {
+    // Security: Allow admin, HR, Accountant, or approved Employee
+    if (req.user.role === 'Employee') {
+      if (!invoice.employeeAccessApproved) {
+        return res.status(403).json({ message: 'HR approval required to access this invoice' });
+      }
+    } else if (!['Admin', 'HR', 'Accountant'].includes(req.user.role) && String(invoice.customer.email) !== req.user.email) {
       return res.status(403).json({ message: 'Access denied' });
     }
     res.json(invoice);
@@ -97,10 +101,17 @@ exports.getInvoicesByUser = async (req, res) => {
   }
 };
 
-// Get all invoices (admin)
+// Get all invoices (admin, HR, Accountant, Employee)
 exports.getAllInvoices = async (req, res) => {
   try {
-    if (req.user.role !== 'Admin') {
+    const role = req.user.role;
+    // Employee: can only see approved invoices
+    if (role === 'Employee') {
+      const invoices = await Invoice.find({ employeeAccessApproved: true });
+      return res.json({ invoices, monthlyTotal: 0 });
+    }
+    // HR, Accountant, Admin can see all
+    if (!['Admin', 'HR', 'Accountant'].includes(role)) {
       return res.status(403).json({ message: 'Access denied' });
     }
     // Filters: date, payment status, monthly total
@@ -112,7 +123,7 @@ exports.getAllInvoices = async (req, res) => {
     if (paymentStatus) {
       filter.paymentStatus = paymentStatus;
     }
-    const invoices = await Invoice.find(filter);
+    const invoices = await Invoice.find(filter).populate('approvedBy', 'username email');
     // Monthly total calculation
     let monthlyTotal = 0;
     if (startDate && endDate) {
@@ -132,8 +143,12 @@ exports.downloadInvoicePDF = async (req, res) => {
       return res.status(404).json({ message: 'Invoice not found' });
     }
     
-    // Security: Only allow owner or admin
-    if (req.user.role !== 'Admin' && String(invoice.customer.email) !== req.user.email) {
+    // Security: Only allow owner, admin, HR, Accountant, or approved Employee
+    if (req.user.role === 'Employee') {
+      if (!invoice.employeeAccessApproved) {
+        return res.status(403).json({ message: 'HR approval required to download this invoice' });
+      }
+    } else if (req.user.role !== 'Admin' && req.user.role !== 'HR' && req.user.role !== 'Accountant' && String(invoice.customer.email) !== req.user.email) {
       return res.status(403).json({ message: 'Access denied' });
     }
 
@@ -235,8 +250,12 @@ exports.viewInvoicePDF = async (req, res) => {
       return res.status(404).json({ message: 'Invoice not found' });
     }
     
-    // Security: Only allow owner or admin
-    if (req.user.role !== 'Admin' && String(invoice.customer.email) !== req.user.email) {
+    // Security: Only allow owner, admin, HR, Accountant, or approved Employee
+    if (req.user.role === 'Employee') {
+      if (!invoice.employeeAccessApproved) {
+        return res.status(403).json({ message: 'HR approval required to view this invoice' });
+      }
+    } else if (req.user.role !== 'Admin' && req.user.role !== 'HR' && req.user.role !== 'Accountant' && String(invoice.customer.email) !== req.user.email) {
       return res.status(403).json({ message: 'Access denied' });
     }
 
@@ -327,5 +346,66 @@ exports.viewInvoicePDF = async (req, res) => {
     doc.end();
   } catch (err) {
     res.status(500).json({ message: 'Error viewing PDF', error: err.message });
+  }
+};
+
+// Approve employee access to invoice (HR/Admin only)
+exports.approveEmployeeAccess = async (req, res) => {
+  try {
+    if (!['HR', 'Admin'].includes(req.user.role)) {
+      return res.status(403).json({ message: 'Only HR or Admin can approve invoice access' });
+    }
+    const invoice = await Invoice.findById(req.params.invoiceId);
+    if (!invoice) return res.status(404).json({ message: 'Invoice not found' });
+
+    invoice.employeeAccessApproved = true;
+    invoice.approvedBy = req.user._id;
+    invoice.approvedAt = new Date();
+    await invoice.save();
+
+    res.json({ message: 'Employee access approved', invoice });
+  } catch (err) {
+    res.status(500).json({ message: 'Error approving access', error: err.message });
+  }
+};
+
+// Revoke employee access to invoice (HR/Admin only)
+exports.revokeEmployeeAccess = async (req, res) => {
+  try {
+    if (!['HR', 'Admin'].includes(req.user.role)) {
+      return res.status(403).json({ message: 'Only HR or Admin can revoke invoice access' });
+    }
+    const invoice = await Invoice.findById(req.params.invoiceId);
+    if (!invoice) return res.status(404).json({ message: 'Invoice not found' });
+
+    invoice.employeeAccessApproved = false;
+    invoice.approvedBy = undefined;
+    invoice.approvedAt = undefined;
+    await invoice.save();
+
+    res.json({ message: 'Employee access revoked', invoice });
+  } catch (err) {
+    res.status(500).json({ message: 'Error revoking access', error: err.message });
+  }
+};
+
+// Bulk approve/revoke employee access (HR/Admin only)
+exports.bulkApproveEmployeeAccess = async (req, res) => {
+  try {
+    if (!['HR', 'Admin'].includes(req.user.role)) {
+      return res.status(403).json({ message: 'Only HR or Admin can manage invoice access' });
+    }
+    const { invoiceIds, approve } = req.body;
+    if (!invoiceIds || !Array.isArray(invoiceIds)) {
+      return res.status(400).json({ message: 'invoiceIds array is required' });
+    }
+    const updateData = approve
+      ? { employeeAccessApproved: true, approvedBy: req.user._id, approvedAt: new Date() }
+      : { employeeAccessApproved: false, $unset: { approvedBy: '', approvedAt: '' } };
+
+    await Invoice.updateMany({ _id: { $in: invoiceIds } }, updateData);
+    res.json({ message: `Employee access ${approve ? 'approved' : 'revoked'} for ${invoiceIds.length} invoices` });
+  } catch (err) {
+    res.status(500).json({ message: 'Error updating access', error: err.message });
   }
 };

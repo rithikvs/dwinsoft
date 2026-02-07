@@ -1,9 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import axios from 'axios';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { AuthContext } from '../context/AuthContext';
 
 const Invoices = () => {
+  const { user } = useContext(AuthContext);
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -83,23 +85,51 @@ const Invoices = () => {
     setTransactionLoading(true);
     setTransactionError('');
     try {
-      const res = await axios.get('http://localhost:5000/api/transactions');
+      const token = localStorage.getItem('token');
+      const res = await axios.get('http://localhost:5000/api/transactions', {
+        headers: { 'x-auth-token': token }
+      });
       setTransactions(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
-      setTransactionError('Failed to load transactions');
+      // Employee may not see transactions if not allowed
+      if (err.response?.status === 403) {
+        setTransactions([]);
+      } else {
+        setTransactionError('Failed to load transactions');
+      }
     } finally {
       setTransactionLoading(false);
     }
   };
 
+  // HR/Admin: Toggle employee access for an invoice
+  const handleToggleAccess = async (invoiceId, currentlyApproved) => {
+    try {
+      const token = localStorage.getItem('token');
+      const endpoint = currentlyApproved ? 'revoke' : 'approve';
+      await axios.put(`http://localhost:5000/api/invoices/${endpoint}/${invoiceId}`, {}, {
+        headers: { 'x-auth-token': token }
+      });
+      fetchInvoices();
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to update access');
+    }
+  };
+
+  const isEmployee = user?.role === 'Employee';
+  const isHROrAdmin = ['HR', 'Admin'].includes(user?.role);
+
   const handleViewInvoice = (invoiceId) => {
-    window.open(`http://localhost:5000/api/invoices/view/${invoiceId}`, '_blank');
+    const token = localStorage.getItem('token');
+    window.open(`http://localhost:5000/api/invoices/view/${invoiceId}?token=${token}`, '_blank');
   };
 
   const handleDownloadInvoice = async (invoiceId, invoiceNumber) => {
     try {
+      const token = localStorage.getItem('token');
       const response = await axios.get(`http://localhost:5000/api/invoices/download/${invoiceId}`, {
-        responseType: 'blob'
+        responseType: 'blob',
+        headers: { 'x-auth-token': token }
       });
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
@@ -603,15 +633,103 @@ const Invoices = () => {
   return (
     <div style={{ padding: '1.5rem' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-        <h2 style={{ margin: 0, color: '#1e293b' }}>Invoices</h2>
-        <button
-          style={{ ...formStyles.btn, ...formStyles.btnPrimary }}
-          onClick={() => setShowForm(!showForm)}
-        >
-          {showForm ? '✕ Close Form' : '+ Create Invoice'}
-        </button>
+        <div>
+          <h2 style={{ margin: 0, color: '#1e293b' }}>Invoices</h2>
+          {isEmployee && (
+            <span style={{ fontSize: '0.85rem', color: '#64748b' }}>You can only view and download invoices approved by HR</span>
+          )}
+        </div>
+        {!isEmployee && (
+          <button
+            style={{ ...formStyles.btn, ...formStyles.btnPrimary }}
+            onClick={() => setShowForm(!showForm)}
+          >
+            {showForm ? '✕ Close Form' : '+ Create Invoice'}
+          </button>
+        )}
       </div>
 
+      {/* Saved Invoices Section */}
+      {invoices.length > 0 && (
+        <div style={{ marginBottom: '2rem' }}>
+          <h3 style={{ margin: '0 0 1rem 0', color: '#0f172a' }}>
+            {isEmployee ? 'Available Invoices' : 'Saved Invoices'}
+          </h3>
+          <div className="row g-3">
+            {invoices.map((inv) => (
+              <div className="col-12 col-md-6 col-lg-4" key={inv._id}>
+                <div className="card h-100 border-0" style={{ boxShadow: '0 10px 30px rgba(15, 23, 42, 0.08)', borderRadius: '16px' }}>
+                  <div className="card-body" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontWeight: 700, color: '#0f172a' }}>{inv.invoiceNumber}</span>
+                      <span className={`badge ${inv.paymentStatus === 'Paid' ? 'bg-success' : inv.paymentStatus === 'Pending' ? 'bg-warning text-dark' : 'bg-danger'}`}>
+                        {inv.paymentStatus}
+                      </span>
+                    </div>
+                    <div style={{ fontSize: '0.85rem', color: '#94a3b8' }}>
+                      {formatDate(inv.invoiceDate)}
+                    </div>
+                    <div style={{ color: '#475569', fontSize: '0.9rem' }}>
+                      {inv.customer?.name || 'N/A'}
+                    </div>
+                    <div style={{ fontSize: '1.25rem', fontWeight: 700, color: '#0f172a' }}>
+                      {formatCurrency(inv.grandTotal)}
+                    </div>
+
+                    {/* Employee Access Badge */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <span 
+                        className={`badge ${inv.employeeAccessApproved ? 'bg-success' : 'bg-secondary'}`}
+                        style={{ fontSize: '0.75rem' }}
+                      >
+                        {inv.employeeAccessApproved ? 'Employee Access: Approved' : 'Employee Access: Restricted'}
+                      </span>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '0.5rem', marginTop: 'auto', flexWrap: 'wrap' }}>
+                      {/* View/Download buttons — disabled for Employee if not approved */}
+                      {isEmployee && !inv.employeeAccessApproved ? (
+                        <span style={{ fontSize: '0.8rem', color: '#94a3b8', fontStyle: 'italic', padding: '0.375rem 0' }}>
+                          Awaiting HR approval to view/download
+                        </span>
+                      ) : (
+                        <>
+                          <button
+                            className="btn btn-sm btn-outline-primary"
+                            onClick={() => handleViewInvoice(inv._id)}
+                          >
+                            View PDF
+                          </button>
+                          <button
+                            className="btn btn-sm btn-outline-success"
+                            onClick={() => handleDownloadInvoice(inv._id, inv.invoiceNumber)}
+                          >
+                            Download
+                          </button>
+                        </>
+                      )}
+
+                      {/* HR/Admin: Approve/Revoke toggle */}
+                      {isHROrAdmin && (
+                        <button
+                          className={`btn btn-sm ${inv.employeeAccessApproved ? 'btn-outline-danger' : 'btn-outline-warning'}`}
+                          onClick={() => handleToggleAccess(inv._id, inv.employeeAccessApproved)}
+                          title={inv.employeeAccessApproved ? 'Revoke employee access' : 'Approve employee access'}
+                        >
+                          {inv.employeeAccessApproved ? 'Revoke Access' : 'Approve Access'}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Transaction Invoices Section — hide for Employee */}
+      {!isEmployee && (
       <div style={{ marginBottom: '2rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
           <div>
@@ -680,9 +798,10 @@ const Invoices = () => {
           )}
         </div>
       </div>
+      )}
 
       {/* Invoice Creation Form */}
-      {showForm && (
+      {showForm && !isEmployee && (
         <div style={formStyles.container}>
           <h3 style={{ marginBottom: '1.5rem', color: '#1e293b' }}>Create New Invoice</h3>
 

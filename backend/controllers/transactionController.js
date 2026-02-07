@@ -1,11 +1,11 @@
 const Transaction = require('../models/Transaction');
 
-// Get all transactions (Admin/Accountant), payroll only for HR, none for Employee
+// Get all transactions (Admin/Accountant/HR full, Employee read-only)
 exports.getTransactions = async (req, res) => {
     try {
         const role = req.user.role;
         let transactions;
-        if (role === 'Admin' || role === 'Accountant' || role === 'HR') {
+        if (role === 'Admin' || role === 'Accountant' || role === 'HR' || role === 'Employee') {
             transactions = await Transaction.find()
                 .populate('bankAccountId', 'accountNumber accountHolder balance')
                 .populate('handCashId', 'holder amount');
@@ -114,8 +114,8 @@ exports.filterTransactions = async (req, res) => {
             if (startDate) filter.date.$gte = new Date(startDate);
             if (endDate) filter.date.$lte = new Date(endDate);
         }
-        // HR can now see all categories, not just Payroll
-        if (!(role === 'Admin' || role === 'Accountant' || role === 'HR')) {
+        // HR and Employee can see all categories (Employee is read-only)
+        if (!(role === 'Admin' || role === 'Accountant' || role === 'HR' || role === 'Employee')) {
             return res.status(403).json({ message: 'Access denied' });
         }
         console.log('Transaction filter:', filter);

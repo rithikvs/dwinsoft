@@ -2,6 +2,7 @@ import React, { useEffect, useState, useContext, useCallback } from 'react';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import EmployeeDashboard from './EmployeeDashboard';
 
 const Dashboard = () => {
     const { user } = useContext(AuthContext);
@@ -96,6 +97,11 @@ const Dashboard = () => {
 
     if (loading) {
         return <div className="text-center mt-5">Loading Dashboard...</div>;
+    }
+
+    // Employee role gets a dedicated dashboard
+    if (user?.role === 'Employee') {
+        return <EmployeeDashboard />;
     }
 
     return (

@@ -3,7 +3,7 @@ import { Container, Nav, Navbar, Button } from 'react-bootstrap';
 import { AuthContext } from '../../context/AuthContext';
 import { ThemeContext } from '../../context/ThemeContext';
 import { Link, Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { FaHome, FaExchangeAlt, FaFileInvoice, FaMoneyBillWave, FaUniversity, FaHandHoldingUsd, FaRecycle, FaCog, FaSignOutAlt, FaUserCircle } from 'react-icons/fa';
+import { FaHome, FaExchangeAlt, FaFileInvoice, FaMoneyBillWave, FaUniversity, FaHandHoldingUsd, FaRecycle, FaCog, FaSignOutAlt, FaUserCircle, FaIdBadge } from 'react-icons/fa';
 
 const DashboardLayout = () => {
     const { user, logout } = useContext(AuthContext);
@@ -20,12 +20,13 @@ const DashboardLayout = () => {
     const role = user?.role;
     const navLinks = [
         { to: '/', label: 'Dashboard', icon: <FaHome />, roles: ['Admin','Accountant','HR','Employee'] },
-        { to: '/transactions', label: 'Transactions', icon: <FaExchangeAlt />, roles: ['Admin','Accountant','HR'] },
+        { to: '/transactions', label: 'Transactions', icon: <FaExchangeAlt />, roles: ['Admin','Accountant','HR','Employee'] },
         { to: '/invoices', label: 'Invoices', icon: <FaFileInvoice />, roles: ['Admin','Accountant','HR','Employee'] },
         { to: '/debts', label: 'Debts', icon: <FaMoneyBillWave />, roles: ['Admin','Accountant','HR','Employee'] },
         { to: '/bank-accounts', label: 'Bank Accounts', icon: <FaUniversity />, roles: ['Admin','Accountant','HR'] },
         { to: '/hand-cash', label: 'Hand Cash', icon: <FaHandHoldingUsd />, roles: ['Admin','Accountant','HR'] },
         { to: '/recycle-bin', label: 'Recycle Bin', icon: <FaRecycle />, roles: ['Admin','Accountant','HR'] },
+        { to: '/employee/profile', label: 'My Profile', icon: <FaIdBadge />, roles: ['Employee'] },
         { to: '/settings', label: 'Settings', icon: <FaCog />, roles: ['Admin','Accountant','HR','Employee'] },
         // Admin-only: Create User
         { to: '/admin/create-user', label: 'Create User', icon: <FaUserCircle />, roles: ['Admin'] },

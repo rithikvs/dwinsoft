@@ -16,6 +16,15 @@ router.get('/view/:invoiceId', authenticate, invoiceController.viewInvoicePDF);
 // Download invoice PDF
 router.get('/download/:invoiceId', authenticate, invoiceController.downloadInvoicePDF);
 
+// HR/Admin: Approve employee access to invoice
+router.put('/approve/:invoiceId', authenticate, invoiceController.approveEmployeeAccess);
+
+// HR/Admin: Revoke employee access to invoice
+router.put('/revoke/:invoiceId', authenticate, invoiceController.revokeEmployeeAccess);
+
+// HR/Admin: Bulk approve/revoke employee access
+router.put('/bulk-access', authenticate, invoiceController.bulkApproveEmployeeAccess);
+
 // Get all invoices for a user
 router.get('/user/:userId', authenticate, invoiceController.getInvoicesByUser);
 
