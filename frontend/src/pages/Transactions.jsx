@@ -800,7 +800,7 @@ const Transactions = () => {
             </p>
           </div>
           <div className="d-flex gap-2 flex-wrap align-items-center" style={{ marginTop: '0.5rem' }}>
-            {transactions.length > 0 && (
+            {canEdit && transactions.length > 0 && (
               <button
                 className="txn-btn-glass"
                 onClick={downloadAllTransactionsInvoice}

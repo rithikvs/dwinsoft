@@ -105,9 +105,9 @@ exports.getInvoicesByUser = async (req, res) => {
 exports.getAllInvoices = async (req, res) => {
   try {
     const role = req.user.role;
-    // Employee: can only see approved invoices
+    // Employee: can see all invoices (but can only view/download approved ones)
     if (role === 'Employee') {
-      const invoices = await Invoice.find({ employeeAccessApproved: true });
+      const invoices = await Invoice.find().populate('accessRequestedBy', 'username email').populate('approvedBy', 'username email');
       return res.json({ invoices, monthlyTotal: 0 });
     }
     // HR, Accountant, Admin can see all
@@ -123,7 +123,7 @@ exports.getAllInvoices = async (req, res) => {
     if (paymentStatus) {
       filter.paymentStatus = paymentStatus;
     }
-    const invoices = await Invoice.find(filter).populate('approvedBy', 'username email');
+    const invoices = await Invoice.find(filter).populate('approvedBy', 'username email').populate('accessRequestedBy', 'username email');
     // Monthly total calculation
     let monthlyTotal = 0;
     if (startDate && endDate) {
@@ -361,6 +361,10 @@ exports.approveEmployeeAccess = async (req, res) => {
     invoice.employeeAccessApproved = true;
     invoice.approvedBy = req.user._id;
     invoice.approvedAt = new Date();
+    // Clear request fields after approval
+    invoice.accessRequested = false;
+    invoice.accessRequestedBy = undefined;
+    invoice.accessRequestedAt = undefined;
     await invoice.save();
 
     res.json({ message: 'Employee access approved', invoice });
@@ -381,11 +385,41 @@ exports.revokeEmployeeAccess = async (req, res) => {
     invoice.employeeAccessApproved = false;
     invoice.approvedBy = undefined;
     invoice.approvedAt = undefined;
+    invoice.accessRequested = false;
+    invoice.accessRequestedBy = undefined;
+    invoice.accessRequestedAt = undefined;
     await invoice.save();
 
     res.json({ message: 'Employee access revoked', invoice });
   } catch (err) {
     res.status(500).json({ message: 'Error revoking access', error: err.message });
+  }
+};
+
+// Employee: Request access to an invoice
+exports.requestAccess = async (req, res) => {
+  try {
+    if (req.user.role !== 'Employee') {
+      return res.status(403).json({ message: 'Only employees can request access' });
+    }
+    const invoice = await Invoice.findById(req.params.invoiceId);
+    if (!invoice) return res.status(404).json({ message: 'Invoice not found' });
+
+    if (invoice.employeeAccessApproved) {
+      return res.status(400).json({ message: 'Access already approved for this invoice' });
+    }
+    if (invoice.accessRequested) {
+      return res.status(400).json({ message: 'Access request already pending' });
+    }
+
+    invoice.accessRequested = true;
+    invoice.accessRequestedBy = req.user._id;
+    invoice.accessRequestedAt = new Date();
+    await invoice.save();
+
+    res.json({ message: 'Access request sent to HR', invoice });
+  } catch (err) {
+    res.status(500).json({ message: 'Error requesting access', error: err.message });
   }
 };
 

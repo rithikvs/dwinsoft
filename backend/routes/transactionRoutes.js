@@ -10,8 +10,18 @@ const transactionController = require('../controllers/transactionController');
 // Filter/search transactions
 router.get('/', authenticate, transactionController.getTransactions);
 router.post('/', authenticate, transactionController.addTransaction);
+router.get('/search/filter', authenticate, transactionController.filterTransactions);
+
+// Employee: Request invoice access for a transaction
+router.put('/request-invoice-access/:id', authenticate, transactionController.requestInvoiceAccess);
+
+// HR/Admin: Approve invoice access for a transaction
+router.put('/approve-invoice-access/:id', authenticate, transactionController.approveInvoiceAccess);
+
+// HR/Admin: Revoke invoice access for a transaction
+router.put('/revoke-invoice-access/:id', authenticate, transactionController.revokeInvoiceAccess);
+
 router.put('/:id', authenticate, transactionController.updateTransaction);
 router.delete('/:id', authenticate, transactionController.deleteTransaction);
-router.get('/search/filter', authenticate, transactionController.filterTransactions);
 
 module.exports = router;

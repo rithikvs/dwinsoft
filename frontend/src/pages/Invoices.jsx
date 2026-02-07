@@ -119,6 +119,40 @@ const Invoices = () => {
   const isEmployee = user?.role === 'Employee';
   const isHROrAdmin = ['HR', 'Admin'].includes(user?.role);
 
+  // Employee: Request access to view an invoice
+  const handleRequestAccess = async (invoiceId) => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.put(`http://localhost:5000/api/invoices/request-access/${invoiceId}`, {}, {
+        headers: { 'x-auth-token': token }
+      });
+      fetchInvoices();
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to send access request');
+    }
+  };
+
+  // Employee: Request invoice access for a transaction
+  const handleRequestTransactionInvoiceAccess = async (transactionId) => {
+    try {
+      await axios.put(`http://localhost:5000/api/transactions/request-invoice-access/${transactionId}`);
+      fetchTransactions();
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to send access request');
+    }
+  };
+
+  // HR/Admin: Approve/Revoke invoice access for a transaction
+  const handleToggleTransactionInvoiceAccess = async (transactionId, currentlyApproved) => {
+    try {
+      const endpoint = currentlyApproved ? 'revoke-invoice-access' : 'approve-invoice-access';
+      await axios.put(`http://localhost:5000/api/transactions/${endpoint}/${transactionId}`);
+      fetchTransactions();
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to update access');
+    }
+  };
+
   const handleViewInvoice = (invoiceId) => {
     const token = localStorage.getItem('token');
     window.open(`http://localhost:5000/api/invoices/view/${invoiceId}?token=${token}`, '_blank');
@@ -636,7 +670,7 @@ const Invoices = () => {
         <div>
           <h2 style={{ margin: 0, color: '#1e293b' }}>Invoices</h2>
           {isEmployee && (
-            <span style={{ fontSize: '0.85rem', color: '#64748b' }}>You can only view and download invoices approved by HR</span>
+            <span style={{ fontSize: '0.85rem', color: '#64748b' }}>Request HR permission to view invoices</span>
           )}
         </div>
         {!isEmployee && (
@@ -653,7 +687,7 @@ const Invoices = () => {
       {invoices.length > 0 && (
         <div style={{ marginBottom: '2rem' }}>
           <h3 style={{ margin: '0 0 1rem 0', color: '#0f172a' }}>
-            {isEmployee ? 'Available Invoices' : 'Saved Invoices'}
+            {isEmployee ? 'All Invoices' : 'Saved Invoices'}
           </h3>
           <div className="row g-3">
             {invoices.map((inv) => (
@@ -677,22 +711,43 @@ const Invoices = () => {
                     </div>
 
                     {/* Employee Access Badge */}
+                    {!isEmployee && (
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                       <span 
-                        className={`badge ${inv.employeeAccessApproved ? 'bg-success' : 'bg-secondary'}`}
+                        className={`badge ${inv.employeeAccessApproved ? 'bg-success' : inv.accessRequested ? 'bg-warning text-dark' : 'bg-secondary'}`}
                         style={{ fontSize: '0.75rem' }}
                       >
-                        {inv.employeeAccessApproved ? 'Employee Access: Approved' : 'Employee Access: Restricted'}
+                        {inv.employeeAccessApproved ? 'Employee Access: Approved' : inv.accessRequested ? `Access Requested by ${inv.accessRequestedBy?.username || 'Employee'}` : 'Employee Access: Restricted'}
                       </span>
                     </div>
+                    )}
+                    {isEmployee && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <span 
+                        className={`badge ${inv.employeeAccessApproved ? 'bg-success' : inv.accessRequested ? 'bg-warning text-dark' : 'bg-secondary'}`}
+                        style={{ fontSize: '0.75rem' }}
+                      >
+                        {inv.employeeAccessApproved ? 'Access Approved' : inv.accessRequested ? 'Request Pending' : 'No Access'}
+                      </span>
+                    </div>
+                    )}
 
                     <div style={{ display: 'flex', gap: '0.5rem', marginTop: 'auto', flexWrap: 'wrap' }}>
-                      {/* View/Download buttons — disabled for Employee if not approved */}
-                      {isEmployee && !inv.employeeAccessApproved ? (
-                        <span style={{ fontSize: '0.8rem', color: '#94a3b8', fontStyle: 'italic', padding: '0.375rem 0' }}>
-                          Awaiting HR approval to view/download
+                      {/* Employee view: show request / pending / view buttons based on status */}
+                      {isEmployee && !inv.employeeAccessApproved && !inv.accessRequested && (
+                        <button
+                          className="btn btn-sm btn-outline-warning"
+                          onClick={() => handleRequestAccess(inv._id)}
+                        >
+                          Request Access
+                        </button>
+                      )}
+                      {isEmployee && !inv.employeeAccessApproved && inv.accessRequested && (
+                        <span style={{ fontSize: '0.8rem', color: '#d97706', fontStyle: 'italic', padding: '0.375rem 0' }}>
+                          Waiting for HR approval...
                         </span>
-                      ) : (
+                      )}
+                      {(!isEmployee || inv.employeeAccessApproved) && (
                         <>
                           <button
                             className="btn btn-sm btn-outline-primary"
@@ -728,13 +783,12 @@ const Invoices = () => {
         </div>
       )}
 
-      {/* Transaction Invoices Section — hide for Employee */}
-      {!isEmployee && (
+      {/* Transaction Invoices Section */}
       <div style={{ marginBottom: '2rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
           <div>
             <h3 style={{ margin: 0, color: '#0f172a' }}>Transaction Invoices</h3>
-            <div style={{ color: '#64748b', fontSize: '0.9rem' }}>Generate invoices directly from your transactions</div>
+            <div style={{ color: '#64748b', fontSize: '0.9rem' }}>{isEmployee ? 'View invoices for all transactions' : 'Generate invoices directly from your transactions'}</div>
           </div>
         </div>
 
@@ -782,14 +836,73 @@ const Invoices = () => {
                       {t.type === 'Income' ? '+' : '-'}{formatCurrency(t.amount)}
                     </div>
 
-                    <div style={{ display: 'flex', gap: '0.5rem', marginTop: 'auto' }}>
-                      <button
-                        type="button"
-                        className="btn btn-sm btn-outline-primary"
-                        onClick={() => downloadTransactionInvoice(t)}
-                      >
-                        Generate Invoice
-                      </button>
+                    {/* Invoice Access Badge */}
+                    {isEmployee && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <span
+                          className={`badge ${t.invoiceAccessApproved ? 'bg-success' : t.invoiceAccessRequested ? 'bg-warning text-dark' : 'bg-secondary'}`}
+                          style={{ fontSize: '0.75rem' }}
+                        >
+                          {t.invoiceAccessApproved ? 'Access Approved' : t.invoiceAccessRequested ? 'Request Pending' : 'No Access'}
+                        </span>
+                      </div>
+                    )}
+                    {isHROrAdmin && (t.invoiceAccessRequested || t.invoiceAccessApproved) && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <span
+                          className={`badge ${t.invoiceAccessApproved ? 'bg-success' : 'bg-warning text-dark'}`}
+                          style={{ fontSize: '0.75rem' }}
+                        >
+                          {t.invoiceAccessApproved ? 'Employee Access: Approved' : `Access Requested by ${t.invoiceAccessRequestedBy?.username || 'Employee'}`}
+                        </span>
+                      </div>
+                    )}
+
+                    <div style={{ display: 'flex', gap: '0.5rem', marginTop: 'auto', flexWrap: 'wrap' }}>
+                      {/* Employee: Request Access / Pending / View Invoice */}
+                      {isEmployee && !t.invoiceAccessApproved && !t.invoiceAccessRequested && (
+                        <button
+                          type="button"
+                          className="btn btn-sm btn-outline-warning"
+                          onClick={() => handleRequestTransactionInvoiceAccess(t._id)}
+                        >
+                          Request Access
+                        </button>
+                      )}
+                      {isEmployee && !t.invoiceAccessApproved && t.invoiceAccessRequested && (
+                        <span style={{ fontSize: '0.8rem', color: '#d97706', fontStyle: 'italic', padding: '0.375rem 0' }}>
+                          Waiting for HR approval...
+                        </span>
+                      )}
+                      {isEmployee && t.invoiceAccessApproved && (
+                        <button
+                          type="button"
+                          className="btn btn-sm btn-outline-primary"
+                          onClick={() => downloadTransactionInvoice(t)}
+                        >
+                          View Invoice
+                        </button>
+                      )}
+
+                      {/* HR/Admin: Generate Invoice + Approve/Revoke */}
+                      {!isEmployee && (
+                        <button
+                          type="button"
+                          className="btn btn-sm btn-outline-primary"
+                          onClick={() => downloadTransactionInvoice(t)}
+                        >
+                          Generate Invoice
+                        </button>
+                      )}
+                      {isHROrAdmin && (t.invoiceAccessRequested || t.invoiceAccessApproved) && (
+                        <button
+                          type="button"
+                          className={`btn btn-sm ${t.invoiceAccessApproved ? 'btn-outline-danger' : 'btn-outline-success'}`}
+                          onClick={() => handleToggleTransactionInvoiceAccess(t._id, t.invoiceAccessApproved)}
+                        >
+                          {t.invoiceAccessApproved ? 'Revoke Access' : 'Approve Access'}
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -798,7 +911,6 @@ const Invoices = () => {
           )}
         </div>
       </div>
-      )}
 
       {/* Invoice Creation Form */}
       {showForm && !isEmployee && (

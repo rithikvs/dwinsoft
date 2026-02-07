@@ -38,7 +38,15 @@ const TransactionSchema = new mongoose.Schema({
   createdAt: {
     type: Date,
     default: Date.now
-  }
+  },
+
+  // Employee invoice access control
+  invoiceAccessRequested: { type: Boolean, default: false },
+  invoiceAccessRequestedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  invoiceAccessRequestedAt: { type: Date },
+  invoiceAccessApproved: { type: Boolean, default: false },
+  invoiceApprovedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  invoiceApprovedAt: { type: Date }
 });
 
 module.exports = mongoose.model('Transaction', TransactionSchema);

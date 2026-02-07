@@ -50,6 +50,11 @@ const InvoiceSchema = new mongoose.Schema({
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   status: { type: String, enum: ['Active', 'Cancelled'], default: 'Active' },
 
+  // Employee access request
+  accessRequested: { type: Boolean, default: false },
+  accessRequestedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  accessRequestedAt: { type: Date },
+
   // HR approval for employee access
   employeeAccessApproved: { type: Boolean, default: false },
   approvedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },

@@ -22,6 +22,9 @@ router.put('/approve/:invoiceId', authenticate, invoiceController.approveEmploye
 // HR/Admin: Revoke employee access to invoice
 router.put('/revoke/:invoiceId', authenticate, invoiceController.revokeEmployeeAccess);
 
+// Employee: Request access to view an invoice
+router.put('/request-access/:invoiceId', authenticate, invoiceController.requestAccess);
+
 // HR/Admin: Bulk approve/revoke employee access
 router.put('/bulk-access', authenticate, invoiceController.bulkApproveEmployeeAccess);
 

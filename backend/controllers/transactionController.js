@@ -8,7 +8,9 @@ exports.getTransactions = async (req, res) => {
         if (role === 'Admin' || role === 'Accountant' || role === 'HR' || role === 'Employee') {
             transactions = await Transaction.find()
                 .populate('bankAccountId', 'accountNumber accountHolder balance')
-                .populate('handCashId', 'holder amount');
+                .populate('handCashId', 'holder amount')
+                .populate('invoiceAccessRequestedBy', 'username email')
+                .populate('invoiceApprovedBy', 'username email');
         } else {
             return res.status(403).json({ message: 'Access denied' });
         }
@@ -126,5 +128,78 @@ exports.filterTransactions = async (req, res) => {
         res.json(transactions);
     } catch (err) {
         res.status(500).json({ message: 'Server error' });
+    }
+};
+
+// Employee: Request invoice access for a transaction
+exports.requestInvoiceAccess = async (req, res) => {
+    try {
+        if (req.user.role !== 'Employee') {
+            return res.status(403).json({ message: 'Only employees can request invoice access' });
+        }
+        const transaction = await Transaction.findById(req.params.id);
+        if (!transaction) return res.status(404).json({ message: 'Transaction not found' });
+
+        if (transaction.invoiceAccessApproved) {
+            return res.status(400).json({ message: 'Invoice access already approved' });
+        }
+        if (transaction.invoiceAccessRequested) {
+            return res.status(400).json({ message: 'Access request already pending' });
+        }
+
+        transaction.invoiceAccessRequested = true;
+        transaction.invoiceAccessRequestedBy = req.user._id;
+        transaction.invoiceAccessRequestedAt = new Date();
+        await transaction.save();
+
+        res.json({ message: 'Invoice access request sent to HR', transaction });
+    } catch (err) {
+        res.status(500).json({ message: 'Error requesting access', error: err.message });
+    }
+};
+
+// HR/Admin: Approve invoice access for a transaction
+exports.approveInvoiceAccess = async (req, res) => {
+    try {
+        if (!['HR', 'Admin'].includes(req.user.role)) {
+            return res.status(403).json({ message: 'Only HR or Admin can approve invoice access' });
+        }
+        const transaction = await Transaction.findById(req.params.id);
+        if (!transaction) return res.status(404).json({ message: 'Transaction not found' });
+
+        transaction.invoiceAccessApproved = true;
+        transaction.invoiceApprovedBy = req.user._id;
+        transaction.invoiceApprovedAt = new Date();
+        transaction.invoiceAccessRequested = false;
+        transaction.invoiceAccessRequestedBy = undefined;
+        transaction.invoiceAccessRequestedAt = undefined;
+        await transaction.save();
+
+        res.json({ message: 'Invoice access approved', transaction });
+    } catch (err) {
+        res.status(500).json({ message: 'Error approving access', error: err.message });
+    }
+};
+
+// HR/Admin: Revoke invoice access for a transaction
+exports.revokeInvoiceAccess = async (req, res) => {
+    try {
+        if (!['HR', 'Admin'].includes(req.user.role)) {
+            return res.status(403).json({ message: 'Only HR or Admin can revoke invoice access' });
+        }
+        const transaction = await Transaction.findById(req.params.id);
+        if (!transaction) return res.status(404).json({ message: 'Transaction not found' });
+
+        transaction.invoiceAccessApproved = false;
+        transaction.invoiceApprovedBy = undefined;
+        transaction.invoiceApprovedAt = undefined;
+        transaction.invoiceAccessRequested = false;
+        transaction.invoiceAccessRequestedBy = undefined;
+        transaction.invoiceAccessRequestedAt = undefined;
+        await transaction.save();
+
+        res.json({ message: 'Invoice access revoked', transaction });
+    } catch (err) {
+        res.status(500).json({ message: 'Error revoking access', error: err.message });
     }
 };
