@@ -268,7 +268,7 @@ const HandCash = () => {
           style={{ ...styles.btn, ...styles.btnPrimary }}
           onClick={() => { setShowForm(!showForm); if (showForm) handleCancel(); }}
         >
-          {showForm ? '✕ Close Form' : '+ Add Hand Cash'}
+          {showForm ? 'Close' : '+ Add Hand Cash'}
         </button>
       </div>
 
@@ -288,7 +288,7 @@ const HandCash = () => {
       <div style={styles.statsContainer}>
         <div style={styles.statCard}>
           <div style={{ ...styles.statIcon, background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
-            <span style={{ color: '#fff' }}>💰</span>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
           </div>
           <div>
             <div style={{ fontSize: '0.85rem', color: '#94a3b8', fontWeight: '500' }}>Total Cash</div>
@@ -297,7 +297,7 @@ const HandCash = () => {
         </div>
         <div style={styles.statCard}>
           <div style={{ ...styles.statIcon, background: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)' }}>
-            <span style={{ color: '#fff' }}>📋</span>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
           </div>
           <div>
             <div style={{ fontSize: '0.85rem', color: '#94a3b8', fontWeight: '500' }}>Total Records</div>
@@ -306,7 +306,7 @@ const HandCash = () => {
         </div>
         <div style={styles.statCard}>
           <div style={{ ...styles.statIcon, background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)' }}>
-            <span style={{ color: '#fff' }}>👤</span>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
           </div>
           <div>
             <div style={{ fontSize: '0.85rem', color: '#94a3b8', fontWeight: '500' }}>Holders</div>
@@ -325,7 +325,7 @@ const HandCash = () => {
           <form onSubmit={handleSubmit}>
             <div style={styles.section}>
               <div style={styles.sectionTitle}>
-                <span>💵</span> Cash Details
+                Cash Details
               </div>
               <div style={styles.row}>
                 <div style={styles.inputGroup}>
@@ -415,7 +415,7 @@ const HandCash = () => {
           </div>
           <input
             type="text"
-            placeholder="🔍 Search by holder or description..."
+            placeholder="Search by holder or description..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             style={styles.searchInput}
@@ -493,7 +493,7 @@ const HandCash = () => {
                         onClick={() => handleEdit(hc)}
                         style={{ borderRadius: '8px', fontWeight: '500' }}
                       >
-                        ✏️ Edit
+                        Edit
                       </button>
                       <button
                         type="button"
@@ -501,7 +501,7 @@ const HandCash = () => {
                         onClick={() => handleDelete(hc._id)}
                         style={{ borderRadius: '8px', fontWeight: '500' }}
                       >
-                        🗑️ Delete
+                        Delete
                       </button>
                     </div>
                   </div>
