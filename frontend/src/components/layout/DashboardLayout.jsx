@@ -3,7 +3,7 @@ import { Container, Nav, Navbar, Button } from 'react-bootstrap';
 import { AuthContext } from '../../context/AuthContext';
 import { ThemeContext } from '../../context/ThemeContext';
 import { Link, Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { FaHome, FaExchangeAlt, FaFileInvoice, FaMoneyBillWave, FaUniversity, FaHandHoldingUsd, FaRecycle, FaCog, FaSignOutAlt, FaUserCircle, FaIdBadge } from 'react-icons/fa';
+import { FaHome, FaExchangeAlt, FaFileInvoice, FaMoneyBillWave, FaUniversity, FaHandHoldingUsd, FaRecycle, FaCog, FaSignOutAlt, FaUserCircle, FaIdBadge, FaRupeeSign } from 'react-icons/fa';
 
 const DashboardLayout = () => {
     const { user, logout } = useContext(AuthContext);
@@ -27,6 +27,8 @@ const DashboardLayout = () => {
         { to: '/hand-cash', label: 'Hand Cash', icon: <FaHandHoldingUsd />, roles: ['Admin','Accountant','HR'] },
         { to: '/recycle-bin', label: 'Recycle Bin', icon: <FaRecycle />, roles: ['Admin','Accountant','HR'] },
         { to: '/employee/profile', label: 'My Profile', icon: <FaIdBadge />, roles: ['Employee'] },
+        { to: '/my-profile', label: 'My Profile', icon: <FaIdBadge />, roles: ['HR'] },
+        { to: '/admin/salary', label: 'Salary Management', icon: <FaRupeeSign />, roles: ['Admin'] },
         { to: '/settings', label: 'Settings', icon: <FaCog />, roles: ['Admin','Accountant','HR','Employee'] },
         // Admin-only: Create User
         { to: '/admin/create-user', label: 'Create User', icon: <FaUserCircle />, roles: ['Admin'] },

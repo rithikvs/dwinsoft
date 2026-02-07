@@ -20,7 +20,16 @@ const UserSchema = new mongoose.Schema({
         type: String,
         enum: ['Admin', 'Accountant', 'HR', 'Employee', 'Auditor'],
         default: 'Accountant'
-    }
+    },
+    phone: { type: String, default: '' },
+    address: { type: String, default: '' },
+    department: { type: String, default: '' },
+    designation: { type: String, default: '' },
+    joiningDate: { type: Date, default: null },
+    salary: { type: Number, default: 0 },
+    bankName: { type: String, default: '' },
+    bankAccountNumber: { type: String, default: '' },
+    ifscCode: { type: String, default: '' }
 });
 
 UserSchema.pre('save', async function (next) {

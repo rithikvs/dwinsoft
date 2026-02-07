@@ -16,6 +16,8 @@ import HandCash from './pages/HandCash';
 import RecycleBin from './pages/RecycleBin';
 import Settings from './pages/Settings';
 import EmployeeProfile from './pages/EmployeeProfile';
+import SalaryManagement from './pages/SalaryManagement';
+import MyProfile from './pages/MyProfile';
 
 function App() {
   return (
@@ -102,6 +104,10 @@ function App() {
               <Route path="/hand-cash" element={<ProtectedRoute roles={['Admin', 'Accountant', 'HR']}><HandCash /></ProtectedRoute>} />
               {/* Employee Profile */}
               <Route path="/employee/profile" element={<ProtectedRoute roles={['Employee']}><EmployeeProfile /></ProtectedRoute>} />
+              {/* My Profile for HR */}
+              <Route path="/my-profile" element={<ProtectedRoute roles={['HR', 'Employee']}><MyProfile /></ProtectedRoute>} />
+              {/* Salary Management: Admin only */}
+              <Route path="/admin/salary" element={<ProtectedRoute roles={['Admin']}><SalaryManagement /></ProtectedRoute>} />
               {/* Recycle Bin: Admin (all); Accountant (financial only); HR (employee only); Employee (no access) */}
               <Route path="/recycle-bin" element={<ProtectedRoute roles={['Admin', 'Accountant', 'HR']}><RecycleBin /></ProtectedRoute>} />
               {/* Settings: Admin (all); Accountant (finance); HR (payroll); Employee (profile only) */}

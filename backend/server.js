@@ -21,6 +21,7 @@ app.use('/api/bank-accounts', require('./routes/bankAccountRoutes'));
 app.use('/api/debts', require('./routes/debtRoutes'));
 app.use('/api/hand-cash', require('./routes/handCashRoutes'));
 app.use('/api/invoices', require('./routes/invoiceRoutes'));
+app.use('/api/salary', require('./routes/salaryRoutes'));
 
 app.use('/api/recycle-bin', require('./routes/recycleBinRoutes'));
 
