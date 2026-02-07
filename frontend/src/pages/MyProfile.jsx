@@ -3,7 +3,9 @@ import { AuthContext } from '../context/AuthContext';
 import { ThemeContext } from '../context/ThemeContext';
 import axios from 'axios';
 import API_BASE_URL from '../utils/api';
-import { FaRupeeSign, FaPhone, FaMapMarkerAlt, FaBriefcase, FaCalendarAlt, FaUniversity, FaEnvelope, FaUserTag, FaShieldAlt } from 'react-icons/fa';
+import { FaRupeeSign, FaPhone, FaMapMarkerAlt, FaBriefcase, FaCalendarAlt, FaUniversity, FaEnvelope, FaUserTag, FaShieldAlt, FaCheckCircle, FaClock } from 'react-icons/fa';
+
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
 const MyProfile = () => {
   const { user } = useContext(AuthContext);
@@ -11,6 +13,8 @@ const MyProfile = () => {
   const isDark = theme === 'dark';
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [salaryRecords, setSalaryRecords] = useState([]);
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -27,6 +31,21 @@ const MyProfile = () => {
       }
     };
     fetchProfile();
+  }, []);
+
+  useEffect(() => {
+    const fetchSalaryRecords = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const res = await axios.get(`${API_BASE_URL}/api/salary/my-records`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setSalaryRecords(res.data);
+      } catch (err) {
+        console.error('Failed to fetch salary records', err);
+      }
+    };
+    fetchSalaryRecords();
   }, []);
 
   const textColor = isDark ? '#e2e8f0' : '#1e293b';
@@ -160,6 +179,65 @@ const MyProfile = () => {
             </div>
           ))}
         </div>
+      </div>
+
+      {/* Monthly Salary History */}
+      <div style={{ marginTop: '1.5rem', background: cardBg, borderRadius: '14px', boxShadow: isDark ? '0 2px 12px rgba(0,0,0,0.3)' : '0 4px 20px rgba(0,0,0,0.06)', padding: '1.5rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', paddingBottom: '0.5rem', borderBottom: `2px solid ${borderColor}`, flexWrap: 'wrap', gap: '0.5rem' }}>
+          <h4 style={{ fontSize: '1rem', fontWeight: 600, color: mutedColor, display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
+            <FaCalendarAlt /> Monthly Salary History
+          </h4>
+          <select value={selectedYear} onChange={e => setSelectedYear(Number(e.target.value))}
+            style={{ padding: '0.35rem 0.6rem', borderRadius: '8px', border: `1px solid ${borderColor}`, background: sectionBg, color: textColor, fontSize: '0.85rem', fontWeight: 500 }}>
+            {[...new Set([new Date().getFullYear(), ...salaryRecords.map(r => r.year)])].sort((a, b) => b - a).map(y => (
+              <option key={y} value={y}>{y}</option>
+            ))}
+          </select>
+        </div>
+        {(() => {
+          const yearRecords = salaryRecords.filter(r => r.year === selectedYear).sort((a, b) => a.month - b.month);
+          if (yearRecords.length === 0) {
+            return <div style={{ textAlign: 'center', padding: '2rem', color: mutedColor, fontSize: '0.9rem' }}>No salary records for {selectedYear}</div>;
+          }
+          return (
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 0, fontSize: '0.85rem' }}>
+                <thead>
+                  <tr style={{ background: isDark ? '#334155' : '#f1f5f9' }}>
+                    {['Month', 'Basic', 'Bonus', 'Deductions', 'Net Salary', 'Status'].map(h => (
+                      <th key={h} style={{ padding: '0.65rem 0.75rem', fontSize: '0.75rem', fontWeight: 700, color: mutedColor, textTransform: 'uppercase', letterSpacing: '0.5px', textAlign: 'left', borderBottom: `1px solid ${borderColor}` }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {yearRecords.map(rec => (
+                    <tr key={rec._id} style={{ borderBottom: `1px solid ${borderColor}` }}>
+                      <td style={{ padding: '0.65rem 0.75rem', color: textColor, fontWeight: 600 }}>{MONTHS[rec.month - 1]}</td>
+                      <td style={{ padding: '0.65rem 0.75rem', color: textColor }}>₹{Number(rec.basicSalary).toLocaleString('en-IN')}</td>
+                      <td style={{ padding: '0.65rem 0.75rem', color: '#10b981' }}>+₹{Number(rec.bonus).toLocaleString('en-IN')}</td>
+                      <td style={{ padding: '0.65rem 0.75rem', color: '#ef4444' }}>-₹{Number(rec.deductions).toLocaleString('en-IN')}</td>
+                      <td style={{ padding: '0.65rem 0.75rem', color: textColor, fontWeight: 700 }}>₹{Number(rec.netSalary).toLocaleString('en-IN')}</td>
+                      <td style={{ padding: '0.65rem 0.75rem' }}>
+                        <span style={{
+                          padding: '0.15rem 0.5rem', borderRadius: '999px', fontSize: '0.75rem', fontWeight: 600,
+                          background: rec.status === 'Paid' ? '#d1fae5' : '#fef3c7', color: rec.status === 'Paid' ? '#059669' : '#b45309',
+                          display: 'inline-flex', alignItems: 'center', gap: '0.25rem',
+                        }}>
+                          {rec.status === 'Paid' ? <><FaCheckCircle /> Paid</> : <><FaClock /> Pending</>}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <div style={{ display: 'flex', gap: '1.5rem', marginTop: '0.75rem', padding: '0.75rem', background: sectionBg, borderRadius: '10px', flexWrap: 'wrap' }}>
+                <div><span style={{ fontSize: '0.75rem', color: mutedColor, fontWeight: 600 }}>Total Earned:</span> <span style={{ fontWeight: 700, color: '#10b981' }}>₹{yearRecords.reduce((a, r) => a + r.netSalary, 0).toLocaleString('en-IN')}</span></div>
+                <div><span style={{ fontSize: '0.75rem', color: mutedColor, fontWeight: 600 }}>Paid:</span> <span style={{ fontWeight: 700, color: '#059669' }}>{yearRecords.filter(r => r.status === 'Paid').length} months</span></div>
+                <div><span style={{ fontSize: '0.75rem', color: mutedColor, fontWeight: 600 }}>Pending:</span> <span style={{ fontWeight: 700, color: '#b45309' }}>{yearRecords.filter(r => r.status === 'Pending').length} months</span></div>
+              </div>
+            </div>
+          );
+        })()}
       </div>
     </div>
   );
