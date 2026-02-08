@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import axios from 'axios';
 import API_BASE_URL from '../utils/api';
+import { ThemeContext } from '../context/ThemeContext';
 
 const initialForm = {
   holder: '',
@@ -9,6 +10,8 @@ const initialForm = {
 };
 
 const HandCash = () => {
+  const { theme } = useContext(ThemeContext);
+  const isDark = theme === 'dark';
   const [handCash, setHandCash] = useState([]);
   const [form, setForm] = useState(initialForm);
   const [editingId, setEditingId] = useState(null);
@@ -120,6 +123,14 @@ const HandCash = () => {
     (hc.description && hc.description.toLowerCase().includes(search.toLowerCase()))
   );
 
+  const cardBg = isDark ? '#1e293b' : '#fff';
+  const textColor = isDark ? '#e2e8f0' : '#1e293b';
+  const darkText = isDark ? '#e2e8f0' : '#0f172a';
+  const mutedColor = isDark ? '#94a3b8' : '#64748b';
+  const borderColor = isDark ? '#334155' : '#e2e8f0';
+  const sectionBg = isDark ? '#334155' : '#f8fafc';
+  const sectionColor = isDark ? '#cbd5e1' : '#475569';
+
   const styles = {
     container: {
       padding: '1.5rem',
@@ -131,23 +142,23 @@ const HandCash = () => {
       marginBottom: '1.5rem',
     },
     formContainer: {
-      background: '#fff',
+      background: cardBg,
       borderRadius: '16px',
-      boxShadow: '0 4px 24px rgba(0,0,0,0.08)',
+      boxShadow: isDark ? '0 4px 24px rgba(0,0,0,0.3)' : '0 4px 24px rgba(0,0,0,0.08)',
       padding: '2rem',
       marginBottom: '2rem',
     },
     section: {
       marginBottom: '1.5rem',
       padding: '1.25rem',
-      background: '#f8fafc',
+      background: sectionBg,
       borderRadius: '12px',
-      border: '1px solid #e2e8f0',
+      border: `1px solid ${borderColor}`,
     },
     sectionTitle: {
       fontSize: '1rem',
       fontWeight: '600',
-      color: '#475569',
+      color: sectionColor,
       marginBottom: '1rem',
       display: 'flex',
       alignItems: 'center',
@@ -166,16 +177,18 @@ const HandCash = () => {
     label: {
       fontSize: '0.875rem',
       fontWeight: '500',
-      color: '#64748b',
+      color: mutedColor,
     },
     input: {
       padding: '0.75rem 1rem',
       borderRadius: '8px',
-      border: '1.5px solid #e2e8f0',
+      border: `1.5px solid ${borderColor}`,
       fontSize: '0.95rem',
       transition: 'border-color 0.2s, box-shadow 0.2s',
       outline: 'none',
       width: '100%',
+      background: isDark ? '#0f172a' : '#fff',
+      color: textColor,
     },
     btn: {
       padding: '0.75rem 1.5rem',
@@ -190,8 +203,8 @@ const HandCash = () => {
       color: '#fff',
     },
     btnSecondary: {
-      background: '#e2e8f0',
-      color: '#475569',
+      background: isDark ? '#334155' : '#e2e8f0',
+      color: sectionColor,
     },
     btnDanger: {
       background: '#fee2e2',
@@ -206,9 +219,9 @@ const HandCash = () => {
       marginBottom: '1.5rem',
     },
     statCard: {
-      background: '#fff',
+      background: cardBg,
       borderRadius: '16px',
-      boxShadow: '0 4px 24px rgba(0,0,0,0.06)',
+      boxShadow: isDark ? '0 4px 24px rgba(0,0,0,0.3)' : '0 4px 24px rgba(0,0,0,0.06)',
       padding: '1.5rem',
       display: 'flex',
       alignItems: 'center',
@@ -232,17 +245,19 @@ const HandCash = () => {
     searchInput: {
       padding: '0.75rem 1rem',
       borderRadius: '10px',
-      border: '1.5px solid #e2e8f0',
+      border: `1.5px solid ${borderColor}`,
       fontSize: '0.95rem',
       outline: 'none',
       flex: 1,
       maxWidth: '400px',
       transition: 'border-color 0.2s, box-shadow 0.2s',
+      background: isDark ? '#0f172a' : '#fff',
+      color: textColor,
     },
     card: {
-      background: '#fff',
+      background: cardBg,
       borderRadius: '16px',
-      boxShadow: '0 10px 30px rgba(15, 23, 42, 0.08)',
+      boxShadow: isDark ? '0 10px 30px rgba(0,0,0,0.3)' : '0 10px 30px rgba(15, 23, 42, 0.08)',
       overflow: 'hidden',
     },
     cardBody: {
@@ -264,7 +279,7 @@ const HandCash = () => {
     <div style={styles.container}>
       {/* Header */}
       <div style={styles.header}>
-        <h2 style={{ margin: 0, color: '#1e293b' }}>Hand Cash</h2>
+        <h2 style={{ margin: 0, color: textColor }}>Hand Cash</h2>
         <button
           style={{ ...styles.btn, ...styles.btnPrimary }}
           onClick={() => { setShowForm(!showForm); if (showForm) handleCancel(); }}
@@ -292,8 +307,8 @@ const HandCash = () => {
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
           </div>
           <div>
-            <div style={{ fontSize: '0.85rem', color: '#94a3b8', fontWeight: '500' }}>Total Cash</div>
-            <div style={{ fontSize: '1.35rem', fontWeight: '700', color: '#0f172a' }}>{formatCurrency(totalCash)}</div>
+            <div style={{ fontSize: '0.85rem', color: mutedColor, fontWeight: '500' }}>Total Cash</div>
+            <div style={{ fontSize: '1.35rem', fontWeight: '700', color: darkText }}>{formatCurrency(totalCash)}</div>
           </div>
         </div>
         <div style={styles.statCard}>
@@ -301,8 +316,8 @@ const HandCash = () => {
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
           </div>
           <div>
-            <div style={{ fontSize: '0.85rem', color: '#94a3b8', fontWeight: '500' }}>Total Records</div>
-            <div style={{ fontSize: '1.35rem', fontWeight: '700', color: '#0f172a' }}>{handCash.length}</div>
+            <div style={{ fontSize: '0.85rem', color: mutedColor, fontWeight: '500' }}>Total Records</div>
+            <div style={{ fontSize: '1.35rem', fontWeight: '700', color: darkText }}>{handCash.length}</div>
           </div>
         </div>
         <div style={styles.statCard}>
@@ -310,8 +325,8 @@ const HandCash = () => {
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
           </div>
           <div>
-            <div style={{ fontSize: '0.85rem', color: '#94a3b8', fontWeight: '500' }}>Holders</div>
-            <div style={{ fontSize: '1.35rem', fontWeight: '700', color: '#0f172a' }}>{new Set(handCash.map(h => h.holder)).size}</div>
+            <div style={{ fontSize: '0.85rem', color: mutedColor, fontWeight: '500' }}>Holders</div>
+            <div style={{ fontSize: '1.35rem', fontWeight: '700', color: darkText }}>{new Set(handCash.map(h => h.holder)).size}</div>
           </div>
         </div>
       </div>
@@ -319,7 +334,7 @@ const HandCash = () => {
       {/* Add / Edit Form */}
       {showForm && (
         <div style={styles.formContainer}>
-          <h3 style={{ marginBottom: '1.5rem', color: '#1e293b' }}>
+          <h3 style={{ marginBottom: '1.5rem', color: textColor }}>
             {editingId ? 'Edit Hand Cash Record' : 'Add New Hand Cash Record'}
           </h3>
 
@@ -411,8 +426,8 @@ const HandCash = () => {
       <div style={{ marginBottom: '2rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem', flexWrap: 'wrap', gap: '1rem' }}>
           <div>
-            <h3 style={{ margin: 0, color: '#0f172a' }}>All Hand Cash Records</h3>
-            <div style={{ color: '#64748b', fontSize: '0.9rem' }}>Track and manage cash holdings by each holder</div>
+            <h3 style={{ margin: 0, color: darkText }}>All Hand Cash Records</h3>
+            <div style={{ color: mutedColor, fontSize: '0.9rem' }}>Track and manage cash holdings by each holder</div>
           </div>
           <input
             type="text"
@@ -426,13 +441,13 @@ const HandCash = () => {
         <div className="row g-3">
           {loading ? (
             <div className="col-12">
-              <div style={{ padding: '2rem', background: '#f8fafc', borderRadius: '12px', textAlign: 'center', color: '#64748b' }}>
+              <div style={{ padding: '2rem', background: sectionBg, borderRadius: '12px', textAlign: 'center', color: mutedColor }}>
                 Loading hand cash records...
               </div>
             </div>
           ) : filteredHandCash.length === 0 ? (
             <div className="col-12">
-              <div style={{ padding: '2rem', background: '#f8fafc', borderRadius: '12px', textAlign: 'center', color: '#64748b' }}>
+              <div style={{ padding: '2rem', background: sectionBg, borderRadius: '12px', textAlign: 'center', color: mutedColor }}>
                 {search ? 'No matching records found.' : 'No hand cash records found. Click "+ Add Hand Cash" to create one.'}
               </div>
             </div>
@@ -442,7 +457,7 @@ const HandCash = () => {
                 <div style={styles.card}>
                   <div style={styles.cardBody}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ fontSize: '0.85rem', color: '#94a3b8' }}>
+                      <span style={{ fontSize: '0.85rem', color: mutedColor }}>
                         {hc.createdAt ? formatDate(hc.createdAt) : '—'}
                       </span>
                       <span style={{
@@ -470,11 +485,11 @@ const HandCash = () => {
                       }}>
                         {hc.holder.charAt(0).toUpperCase()}
                       </div>
-                      <div style={{ fontWeight: 700, color: '#0f172a', fontSize: '1.05rem' }}>{hc.holder}</div>
+                      <div style={{ fontWeight: 700, color: darkText, fontSize: '1.05rem' }}>{hc.holder}</div>
                     </div>
 
                     {hc.description && (
-                      <div style={{ fontSize: '0.9rem', color: '#64748b', lineHeight: 1.4 }}>
+                      <div style={{ fontSize: '0.9rem', color: mutedColor, lineHeight: 1.4 }}>
                         {hc.description}
                       </div>
                     )}

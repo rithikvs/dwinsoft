@@ -2,11 +2,14 @@ import React, { useEffect, useState, useContext, useCallback } from 'react';
 import axios from 'axios';
 import API_BASE_URL from '../utils/api';
 import { AuthContext } from '../context/AuthContext';
+import { ThemeContext } from '../context/ThemeContext';
 import { useNavigate } from 'react-router-dom';
 import EmployeeDashboard from './EmployeeDashboard';
 
 const Dashboard = () => {
     const { user } = useContext(AuthContext);
+    const { theme } = useContext(ThemeContext);
+    const isDark = theme === 'dark';
     const [stats, setStats] = useState({
         income: 0,
         expense: 0,
@@ -97,7 +100,7 @@ const Dashboard = () => {
     };
 
     if (loading) {
-        return <div className="text-center mt-5">Loading Dashboard...</div>;
+        return <div style={{ textAlign: 'center', marginTop: '3rem', color: 'var(--text-muted)' }}>Loading Dashboard...</div>;
     }
 
     // Employee role gets a dedicated dashboard
@@ -105,14 +108,24 @@ const Dashboard = () => {
         return <EmployeeDashboard />;
     }
 
+    const cardBg = isDark ? '#1e293b' : '#fff';
+    const textColor = isDark ? '#e2e8f0' : '#1e293b';
+    const mutedColor = isDark ? '#94a3b8' : '#64748b';
+    const borderColor = isDark ? '#334155' : '#e2e8f0';
+
     return (
         <div className="container-fluid">
-            <h2 className="mb-4">Dashboard</h2>
+            <h2 className="mb-4" style={{ color: textColor }}>Dashboard</h2>
 
             {/* Welcome Section */}
-            <div className="alert alert-primary mb-4" role="alert">
-                <h4 className="alert-heading">Welcome back, {user?.name || 'User'}!</h4>
-                <p className="mb-0">Here's an overview of your financial status and records.</p>
+            <div style={{
+                padding: '1.25rem 1.5rem', borderRadius: '14px', marginBottom: '1.5rem',
+                background: isDark ? 'linear-gradient(135deg, #1e3a5f, #1e293b)' : 'linear-gradient(135deg, #dbeafe, #f0f9ff)',
+                border: `1px solid ${isDark ? '#2563eb40' : '#93c5fd'}`,
+                color: isDark ? '#93c5fd' : '#1e40af',
+            }}>
+                <h4 style={{ margin: '0 0 0.25rem', color: 'inherit' }}>Welcome back, {user?.name || 'User'}!</h4>
+                <p style={{ margin: 0, opacity: 0.85 }}>Here's an overview of your financial status and records.</p>
             </div>
 
             {/* Transaction Stats Cards */}
@@ -158,31 +171,31 @@ const Dashboard = () => {
             {/* Recent Activity Section */}
             <div className="row">
                 <div className="col-12">
-                    <div className="card shadow-sm">
-                        <div className="card-header bg-white d-flex justify-content-between align-items-center">
-                            <h5 className="mb-0">Recent Transactions</h5>
+                    <div className="card shadow-sm" style={{ background: cardBg, borderColor: borderColor }}>
+                        <div className="d-flex justify-content-between align-items-center" style={{ padding: '1rem 1.25rem', borderBottom: `1px solid ${borderColor}`, background: cardBg }}>
+                            <h5 className="mb-0" style={{ color: textColor }}>Recent Transactions</h5>
                             <button className="btn btn-sm btn-outline-primary" onClick={() => navigate('/transactions')}>
                                 View All
                             </button>
                         </div>
                         <div className="table-responsive">
-                            <table className="table table-hover mb-0 align-middle">
-                                <thead className="table-light">
-                                    <tr>
-                                        <th>Date</th>
-                                        <th>Description</th>
-                                        <th>Category</th>
-                                        <th>Payment Method</th>
-                                        <th>Type</th>
-                                        <th className="text-end">Amount</th>
+                            <table className="table table-hover mb-0 align-middle" style={{ color: textColor }}>
+                                <thead>
+                                    <tr style={{ background: isDark ? '#334155' : '#f8fafc' }}>
+                                        <th style={{ color: mutedColor, borderColor }}>Date</th>
+                                        <th style={{ color: mutedColor, borderColor }}>Description</th>
+                                        <th style={{ color: mutedColor, borderColor }}>Category</th>
+                                        <th style={{ color: mutedColor, borderColor }}>Payment Method</th>
+                                        <th style={{ color: mutedColor, borderColor }}>Type</th>
+                                        <th className="text-end" style={{ color: mutedColor, borderColor }}>Amount</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {recentTransactions.length > 0 ? (
                                         recentTransactions.map(t => (
-                                            <tr key={t._id}>
-                                                <td>{new Date(t.date).toLocaleDateString('en-IN')}</td>
-                                                <td>{t.description}</td>
+                                            <tr key={t._id} style={{ borderColor }}>
+                                                <td style={{ borderColor }}>{new Date(t.date).toLocaleDateString('en-IN')}</td>
+                                                <td style={{ borderColor }}>{t.description}</td>
                                                 <td>
                                                     <span className="badge bg-secondary">{t.category}</span>
                                                 </td>

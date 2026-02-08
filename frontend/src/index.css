@@ -1,3 +1,35 @@
+:root {
+  --bg-primary: #f8f9fa;
+  --bg-card: #ffffff;
+  --bg-card-hover: #f8fafc;
+  --bg-section: #f1f5f9;
+  --bg-input: #f8fafc;
+  --text-primary: #1e293b;
+  --text-secondary: #475569;
+  --text-muted: #64748b;
+  --text-faint: #94a3b8;
+  --border-color: #e2e8f0;
+  --border-light: #f1f5f9;
+  --shadow-card: 0 4px 24px rgba(0,0,0,0.06);
+  --shadow-sm: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+[data-theme='dark'] {
+  --bg-primary: #0f172a;
+  --bg-card: #1e293b;
+  --bg-card-hover: #334155;
+  --bg-section: #334155;
+  --bg-input: #0f172a;
+  --text-primary: #e2e8f0;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
+  --text-faint: #64748b;
+  --border-color: #334155;
+  --border-light: #1e293b;
+  --shadow-card: 0 4px 24px rgba(0,0,0,0.3);
+  --shadow-sm: 0 2px 8px rgba(0,0,0,0.2);
+}
+
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
@@ -5,40 +37,97 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #f8f9fa;
-  color: #222;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
   transition: background 0.3s, color 0.3s;
 }
 
-body[data-theme='dark'] {
-  background-color: #181c24;
-  color: #f1f1f1;
+/* Dark mode: Bootstrap overrides */
+body[data-theme='dark'] .card,
+body[data-theme='dark'] .card-header,
+body[data-theme='dark'] .card-body {
+  background: var(--bg-card) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-color) !important;
 }
 
-body[data-theme='dark'] .animated-card,
-body[data-theme='dark'] .card {
-  background: #232a36 !important;
-  color: #f1f1f1 !important;
-  box-shadow: 0 8px 32px 0 rgba(0,0,0,0.35);
+body[data-theme='dark'] .card-header.bg-white {
+  background: var(--bg-card) !important;
+}
+
+body[data-theme='dark'] .table,
+body[data-theme='dark'] .table th,
+body[data-theme='dark'] .table td {
+  color: var(--text-primary) !important;
+  border-color: var(--border-color) !important;
+}
+
+body[data-theme='dark'] .table-hover tbody tr:hover {
+  background-color: var(--bg-card-hover) !important;
+  color: var(--text-primary) !important;
+}
+
+body[data-theme='dark'] .table-light,
+body[data-theme='dark'] thead.table-light th {
+  background-color: var(--bg-section) !important;
+  color: var(--text-muted) !important;
+}
+
+body[data-theme='dark'] .alert-primary {
+  background-color: #1e3a5f !important;
+  border-color: #2563eb !important;
+  color: #93c5fd !important;
+}
+
+body[data-theme='dark'] .btn-outline-primary {
+  color: #93c5fd !important;
+  border-color: #93c5fd !important;
+}
+
+body[data-theme='dark'] .btn-outline-primary:hover {
+  background-color: #2563eb !important;
+  color: #fff !important;
+}
+
+body[data-theme='dark'] .text-muted {
+  color: var(--text-muted) !important;
+}
+
+body[data-theme='dark'] .container-fluid h2,
+body[data-theme='dark'] .container-fluid h5,
+body[data-theme='dark'] .container-fluid .mb-0 {
+  color: var(--text-primary) !important;
 }
 
 body[data-theme='dark'] input,
 body[data-theme='dark'] select,
 body[data-theme='dark'] textarea {
-  background: #232a36 !important;
-  color: #f1f1f1 !important;
-  border: 1px solid #333 !important;
+  background: var(--bg-input) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-color) !important;
 }
 
-body[data-theme='dark'] .animated-title,
 body[data-theme='dark'] h2, 
+body[data-theme='dark'] h3,
+body[data-theme='dark'] h4,
 body[data-theme='dark'] h5, 
 body[data-theme='dark'] label {
-  color: #8ecfff !important;
+  color: var(--text-primary) !important;
 }
 
 body[data-theme='dark'] .form-text {
-  color: #b0b0b0 !important;
+  color: var(--text-muted) !important;
+}
+
+body[data-theme='dark'] .modal-content {
+  background: var(--bg-card) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-color) !important;
+}
+
+body[data-theme='dark'] .modal-header,
+body[data-theme='dark'] .modal-footer {
+  border-color: var(--border-color) !important;
 }
 
 code {
@@ -61,4 +150,16 @@ code {
 
 ::-webkit-scrollbar-thumb:hover {
   background: #555;
+}
+
+body[data-theme='dark'] ::-webkit-scrollbar-track {
+  background: #1e293b;
+}
+
+body[data-theme='dark'] ::-webkit-scrollbar-thumb {
+  background: #475569;
+}
+
+body[data-theme='dark'] ::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
 }

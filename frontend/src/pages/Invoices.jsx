@@ -4,9 +4,12 @@ import API_BASE_URL from '../utils/api';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { AuthContext } from '../context/AuthContext';
+import { ThemeContext } from '../context/ThemeContext';
 
 const Invoices = () => {
   const { user } = useContext(AuthContext);
+  const { theme } = useContext(ThemeContext);
+  const isDark = theme === 'dark';
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -553,25 +556,34 @@ const Invoices = () => {
     }
   };
 
+  const cardBg = isDark ? '#1e293b' : '#fff';
+  const textColor = isDark ? '#e2e8f0' : '#1e293b';
+  const darkText = isDark ? '#e2e8f0' : '#0f172a';
+  const mutedColor = isDark ? '#94a3b8' : '#64748b';
+  const sectionColor = isDark ? '#cbd5e1' : '#475569';
+  const borderColor = isDark ? '#334155' : '#e2e8f0';
+  const sectionBg = isDark ? '#334155' : '#f8fafc';
+  const thBg = isDark ? '#334155' : '#f1f5f9';
+
   const formStyles = {
     container: {
-      background: '#fff',
+      background: cardBg,
       borderRadius: '16px',
-      boxShadow: '0 4px 24px rgba(0,0,0,0.08)',
+      boxShadow: isDark ? '0 4px 24px rgba(0,0,0,0.3)' : '0 4px 24px rgba(0,0,0,0.08)',
       padding: '2rem',
       marginBottom: '2rem',
     },
     section: {
       marginBottom: '1.5rem',
       padding: '1.25rem',
-      background: '#f8fafc',
+      background: sectionBg,
       borderRadius: '12px',
-      border: '1px solid #e2e8f0',
+      border: `1px solid ${borderColor}`,
     },
     sectionTitle: {
       fontSize: '1rem',
       fontWeight: '600',
-      color: '#475569',
+      color: sectionColor,
       marginBottom: '1rem',
       display: 'flex',
       alignItems: 'center',
@@ -590,22 +602,25 @@ const Invoices = () => {
     label: {
       fontSize: '0.875rem',
       fontWeight: '500',
-      color: '#64748b',
+      color: mutedColor,
     },
     input: {
       padding: '0.75rem 1rem',
       borderRadius: '8px',
-      border: '1.5px solid #e2e8f0',
+      border: `1.5px solid ${borderColor}`,
       fontSize: '0.95rem',
       transition: 'border-color 0.2s, box-shadow 0.2s',
       outline: 'none',
+      background: isDark ? '#0f172a' : '#fff',
+      color: textColor,
     },
     select: {
       padding: '0.75rem 1rem',
       borderRadius: '8px',
-      border: '1.5px solid #e2e8f0',
+      border: `1.5px solid ${borderColor}`,
       fontSize: '0.95rem',
-      background: '#fff',
+      background: isDark ? '#0f172a' : '#fff',
+      color: textColor,
       cursor: 'pointer',
     },
     itemsTable: {
@@ -615,15 +630,15 @@ const Invoices = () => {
     th: {
       textAlign: 'left',
       padding: '0.75rem',
-      background: '#f1f5f9',
+      background: thBg,
       fontWeight: '600',
       fontSize: '0.875rem',
-      color: '#475569',
-      borderBottom: '2px solid #e2e8f0',
+      color: sectionColor,
+      borderBottom: `2px solid ${borderColor}`,
     },
     td: {
       padding: '0.75rem',
-      borderBottom: '1px solid #e2e8f0',
+      borderBottom: `1px solid ${borderColor}`,
       verticalAlign: 'middle',
     },
     totalRow: {
@@ -650,8 +665,8 @@ const Invoices = () => {
       color: '#fff',
     },
     btnSecondary: {
-      background: '#e2e8f0',
-      color: '#475569',
+      background: isDark ? '#334155' : '#e2e8f0',
+      color: sectionColor,
     },
     btnSuccess: {
       background: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
@@ -669,9 +684,9 @@ const Invoices = () => {
     <div style={{ padding: '1.5rem' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
         <div>
-          <h2 style={{ margin: 0, color: '#1e293b' }}>Invoices</h2>
+          <h2 style={{ margin: 0, color: textColor }}>Invoices</h2>
           {isEmployee && (
-            <span style={{ fontSize: '0.85rem', color: '#64748b' }}>Request HR permission to view invoices</span>
+            <span style={{ fontSize: '0.85rem', color: mutedColor }}>Request HR permission to view invoices</span>
           )}
         </div>
         {!isEmployee && (
@@ -687,27 +702,27 @@ const Invoices = () => {
       {/* Saved Invoices Section */}
       {invoices.length > 0 && (
         <div style={{ marginBottom: '2rem' }}>
-          <h3 style={{ margin: '0 0 1rem 0', color: '#0f172a' }}>
+          <h3 style={{ margin: '0 0 1rem 0', color: darkText }}>
             {isEmployee ? 'All Invoices' : 'Saved Invoices'}
           </h3>
           <div className="row g-3">
             {invoices.map((inv) => (
               <div className="col-12 col-md-6 col-lg-4" key={inv._id}>
-                <div className="card h-100 border-0" style={{ boxShadow: '0 10px 30px rgba(15, 23, 42, 0.08)', borderRadius: '16px' }}>
+                <div className="card h-100 border-0" style={{ boxShadow: isDark ? '0 10px 30px rgba(0,0,0,0.3)' : '0 10px 30px rgba(15, 23, 42, 0.08)', borderRadius: '16px', background: cardBg }}>
                   <div className="card-body" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ fontWeight: 700, color: '#0f172a' }}>{inv.invoiceNumber}</span>
+                      <span style={{ fontWeight: 700, color: darkText }}>{inv.invoiceNumber}</span>
                       <span className={`badge ${inv.paymentStatus === 'Paid' ? 'bg-success' : inv.paymentStatus === 'Pending' ? 'bg-warning text-dark' : 'bg-danger'}`}>
                         {inv.paymentStatus}
                       </span>
                     </div>
-                    <div style={{ fontSize: '0.85rem', color: '#94a3b8' }}>
+                    <div style={{ fontSize: '0.85rem', color: mutedColor }}>
                       {formatDate(inv.invoiceDate)}
                     </div>
-                    <div style={{ color: '#475569', fontSize: '0.9rem' }}>
+                    <div style={{ color: sectionColor, fontSize: '0.9rem' }}>
                       {inv.customer?.name || 'N/A'}
                     </div>
-                    <div style={{ fontSize: '1.25rem', fontWeight: 700, color: '#0f172a' }}>
+                    <div style={{ fontSize: '1.25rem', fontWeight: 700, color: darkText }}>
                       {formatCurrency(inv.grandTotal)}
                     </div>
 
@@ -788,8 +803,8 @@ const Invoices = () => {
       <div style={{ marginBottom: '2rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
           <div>
-            <h3 style={{ margin: 0, color: '#0f172a' }}>Transaction Invoices</h3>
-            <div style={{ color: '#64748b', fontSize: '0.9rem' }}>{isEmployee ? 'View invoices for all transactions' : 'Generate invoices directly from your transactions'}</div>
+            <h3 style={{ margin: 0, color: darkText }}>Transaction Invoices</h3>
+            <div style={{ color: mutedColor, fontSize: '0.9rem' }}>{isEmployee ? 'View invoices for all transactions' : 'Generate invoices directly from your transactions'}</div>
           </div>
         </div>
 
@@ -802,29 +817,29 @@ const Invoices = () => {
         <div className="row g-3">
           {transactionLoading ? (
             <div className="col-12">
-              <div style={{ padding: '1rem', background: '#f8fafc', borderRadius: '12px', textAlign: 'center' }}>
+              <div style={{ padding: '1rem', background: sectionBg, borderRadius: '12px', textAlign: 'center', color: mutedColor }}>
                 Loading transactions...
               </div>
             </div>
           ) : transactions.length === 0 ? (
             <div className="col-12">
-              <div style={{ padding: '1rem', background: '#f8fafc', borderRadius: '12px', textAlign: 'center', color: '#64748b' }}>
+              <div style={{ padding: '1rem', background: sectionBg, borderRadius: '12px', textAlign: 'center', color: mutedColor }}>
                 No transactions found.
               </div>
             </div>
           ) : (
             transactions.map((t) => (
               <div className="col-12 col-md-6 col-lg-4" key={t._id}>
-                <div className="card h-100 border-0" style={{ boxShadow: '0 10px 30px rgba(15, 23, 42, 0.08)', borderRadius: '16px' }}>
+                <div className="card h-100 border-0" style={{ boxShadow: isDark ? '0 10px 30px rgba(0,0,0,0.3)' : '0 10px 30px rgba(15, 23, 42, 0.08)', borderRadius: '16px', background: cardBg }}>
                   <div className="card-body" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ fontSize: '0.85rem', color: '#94a3b8' }}>{formatDate(t.date)}</span>
+                      <span style={{ fontSize: '0.85rem', color: mutedColor }}>{formatDate(t.date)}</span>
                       <span className={`badge ${t.type === 'Income' ? 'bg-success' : 'bg-danger'}`}>
                         {t.type}
                       </span>
                     </div>
 
-                    <div style={{ fontWeight: 700, color: '#0f172a', fontSize: '1.05rem' }}>{t.description}</div>
+                    <div style={{ fontWeight: 700, color: darkText, fontSize: '1.05rem' }}>{t.description}</div>
 
                     <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                       <span className="badge bg-secondary">{t.category || 'General'}</span>
@@ -916,7 +931,7 @@ const Invoices = () => {
       {/* Invoice Creation Form */}
       {showForm && !isEmployee && (
         <div style={formStyles.container}>
-          <h3 style={{ marginBottom: '1.5rem', color: '#1e293b' }}>Create New Invoice</h3>
+          <h3 style={{ marginBottom: '1.5rem', color: textColor }}>Create New Invoice</h3>
 
           {formError && (
             <div style={{ padding: '1rem', background: '#fee2e2', color: '#dc2626', borderRadius: '8px', marginBottom: '1rem' }}>

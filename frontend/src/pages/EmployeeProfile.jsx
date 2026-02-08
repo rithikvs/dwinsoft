@@ -1,8 +1,18 @@
 import React, { useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
+import { ThemeContext } from '../context/ThemeContext';
 
 const EmployeeProfile = () => {
   const { user } = useContext(AuthContext);
+  const { theme } = useContext(ThemeContext);
+  const isDark = theme === 'dark';
+
+  const cardBg = isDark ? '#1e293b' : '#fff';
+  const textColor = isDark ? '#e2e8f0' : '#1e293b';
+  const mutedColor = isDark ? '#94a3b8' : '#64748b';
+  const sectionColor = isDark ? '#cbd5e1' : '#475569';
+  const borderColor = isDark ? '#334155' : '#f1f5f9';
+  const rowBorder = isDark ? '#1e293b' : '#f8fafc';
 
   const styles = {
     container: { padding: '1.5rem' },
@@ -13,9 +23,9 @@ const EmployeeProfile = () => {
       marginBottom: '1.5rem',
     },
     profileCard: {
-      background: '#fff',
+      background: cardBg,
       borderRadius: '16px',
-      boxShadow: '0 4px 24px rgba(0,0,0,0.06)',
+      boxShadow: isDark ? '0 4px 24px rgba(0,0,0,0.3)' : '0 4px 24px rgba(0,0,0,0.06)',
       overflow: 'hidden',
       marginBottom: '1.5rem',
     },
@@ -28,8 +38,8 @@ const EmployeeProfile = () => {
       width: '80px',
       height: '80px',
       borderRadius: '50%',
-      background: '#fff',
-      border: '4px solid #fff',
+      background: cardBg,
+      border: `4px solid ${cardBg}`,
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
@@ -51,34 +61,34 @@ const EmployeeProfile = () => {
       marginTop: '1.5rem',
     },
     infoCard: {
-      background: '#fff',
+      background: cardBg,
       borderRadius: '14px',
-      boxShadow: '0 4px 20px rgba(0,0,0,0.06)',
+      boxShadow: isDark ? '0 4px 20px rgba(0,0,0,0.3)' : '0 4px 20px rgba(0,0,0,0.06)',
       padding: '1.5rem',
     },
     sectionTitle: {
       fontSize: '1rem',
       fontWeight: '600',
-      color: '#475569',
+      color: sectionColor,
       marginBottom: '1rem',
       paddingBottom: '0.5rem',
-      borderBottom: '2px solid #f1f5f9',
+      borderBottom: `2px solid ${borderColor}`,
     },
     infoRow: {
       display: 'flex',
       justifyContent: 'space-between',
       alignItems: 'center',
       padding: '0.65rem 0',
-      borderBottom: '1px solid #f8fafc',
+      borderBottom: `1px solid ${rowBorder}`,
     },
     label: {
       fontSize: '0.875rem',
-      color: '#64748b',
+      color: mutedColor,
       fontWeight: '500',
     },
     value: {
       fontSize: '0.875rem',
-      color: '#1e293b',
+      color: textColor,
       fontWeight: '600',
     },
     badge: {
@@ -95,8 +105,8 @@ const EmployeeProfile = () => {
   return (
     <div style={styles.container}>
       <div style={styles.header}>
-        <h2 style={{ margin: 0, color: '#1e293b' }}>My Profile</h2>
-        <span style={{ fontSize: '0.9rem', color: '#94a3b8' }}>{today}</span>
+        <h2 style={{ margin: 0, color: textColor }}>My Profile</h2>
+        <span style={{ fontSize: '0.9rem', color: mutedColor }}>{today}</span>
       </div>
 
       {/* Profile Card */}
@@ -107,10 +117,10 @@ const EmployeeProfile = () => {
           </div>
         </div>
         <div style={styles.profileBody}>
-          <h3 style={{ margin: '0 0 0.25rem 0', color: '#1e293b', fontSize: '1.4rem' }}>
+          <h3 style={{ margin: '0 0 0.25rem 0', color: textColor, fontSize: '1.4rem' }}>
             {user?.username || 'Employee'}
           </h3>
-          <p style={{ margin: 0, color: '#64748b', fontSize: '0.9rem' }}>
+          <p style={{ margin: 0, color: mutedColor, fontSize: '0.9rem' }}>
             {user?.email || 'No email on file'}
           </p>
           <div style={{ marginTop: '0.75rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
@@ -181,7 +191,7 @@ const EmployeeProfile = () => {
             { label: 'Manage Bank Accounts', allowed: false },
             { label: 'Admin Panel', allowed: false },
           ].map((perm, i, arr) => (
-            <div key={perm.label} style={{ ...styles.infoRow, borderBottom: i === arr.length - 1 ? 'none' : '1px solid #f8fafc' }}>
+            <div key={perm.label} style={{ ...styles.infoRow, borderBottom: i === arr.length - 1 ? 'none' : `1px solid ${rowBorder}` }}>
               <span style={styles.label}>{perm.label}</span>
               <span style={{
                 ...styles.badge,

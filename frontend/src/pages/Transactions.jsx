@@ -3,6 +3,7 @@ import React, { useEffect, useState, useContext } from 'react';
 import axios from 'axios';
 import API_BASE_URL from '../utils/api';
 import { AuthContext } from '../context/AuthContext';
+import { ThemeContext } from '../context/ThemeContext';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import {
@@ -39,6 +40,8 @@ const initialBankAccountForm = {
 
 const Transactions = () => {
   const { user } = useContext(AuthContext);
+  const { theme } = useContext(ThemeContext);
+  const isDark = theme === 'dark';
   const [transactions, setTransactions] = useState([]);
   const [bankAccounts, setBankAccounts] = useState([]);
   const [handCashRecords, setHandCashRecords] = useState([]);
@@ -758,13 +761,13 @@ const Transactions = () => {
 
   // Reusable style objects
   const thStyle = { color: '#94a3b8', fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', padding: '0.85rem 1.15rem', border: 'none', whiteSpace: 'nowrap' };
-  const tdStyle = { padding: '0.85rem 1.15rem', color: '#475569', border: 'none', verticalAlign: 'middle' };
-  const modalInputStyle = { borderRadius: '0.65rem', border: '2px solid #e2e8f0', padding: '0.6rem 0.85rem', fontSize: '0.9rem', transition: 'all .2s ease', outline: 'none', background: '#f8fafc' };
-  const filterInputStyle = { borderRadius: '0.5rem', border: '2px solid #e2e8f0', fontSize: '0.85rem', background: '#f8fafc' };
-  const actionBtnStyle = { background: 'transparent', border: '1.5px solid #e2e8f0', borderRadius: '0.5rem', width: 34, height: 34, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', transition: 'all .2s ease', cursor: 'pointer' };
+  const tdStyle = { padding: '0.85rem 1.15rem', color: isDark ? '#cbd5e1' : '#475569', border: 'none', verticalAlign: 'middle' };
+  const modalInputStyle = { borderRadius: '0.65rem', border: `2px solid ${isDark ? '#334155' : '#e2e8f0'}`, padding: '0.6rem 0.85rem', fontSize: '0.9rem', transition: 'all .2s ease', outline: 'none', background: isDark ? '#0f172a' : '#f8fafc', color: isDark ? '#e2e8f0' : '#1e293b' };
+  const filterInputStyle = { borderRadius: '0.5rem', border: `2px solid ${isDark ? '#334155' : '#e2e8f0'}`, fontSize: '0.85rem', background: isDark ? '#0f172a' : '#f8fafc', color: isDark ? '#e2e8f0' : '#1e293b' };
+  const actionBtnStyle = { background: 'transparent', border: `1.5px solid ${isDark ? '#334155' : '#e2e8f0'}`, borderRadius: '0.5rem', width: 34, height: 34, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', transition: 'all .2s ease', cursor: 'pointer' };
 
   return (
-    <div className="transactions-page" style={{ minHeight: '100vh', background: 'linear-gradient(180deg, #f8fafc 0%, #eef2f7 50%, #e2e8f0 100%)' }}>
+    <div className="transactions-page" style={{ minHeight: '100vh', background: isDark ? 'transparent' : 'linear-gradient(180deg, #f8fafc 0%, #eef2f7 50%, #e2e8f0 100%)' }}>
 
       {/* ── HERO HEADER ── */}
       <div style={{
@@ -829,33 +832,33 @@ const Transactions = () => {
         {/* ── Alerts ── */}
         {error && (
           <div className="d-flex align-items-center gap-2 mb-3" style={{
-            background: 'linear-gradient(135deg, #fef2f2, #fff1f2)',
+            background: isDark ? 'rgba(239,68,68,0.15)' : 'linear-gradient(135deg, #fef2f2, #fff1f2)',
             borderRadius: '0.85rem',
             padding: '0.85rem 1.15rem',
-            border: '1px solid #fecdd3',
+            border: `1px solid ${isDark ? 'rgba(239,68,68,0.3)' : '#fecdd3'}`,
             boxShadow: '0 4px 12px rgba(239,68,68,0.1)',
             animation: 'slideDown .3s ease'
           }}>
-            <div style={{ background: '#fee2e2', borderRadius: '50%', width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <div style={{ background: isDark ? 'rgba(239,68,68,0.2)' : '#fee2e2', borderRadius: '50%', width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
               <span style={{ fontSize: '0.85rem' }}>⚠️</span>
             </div>
-            <span style={{ color: '#991b1b', fontWeight: 500, fontSize: '0.88rem', flex: 1 }}>{error}</span>
+            <span style={{ color: isDark ? '#fca5a5' : '#991b1b', fontWeight: 500, fontSize: '0.88rem', flex: 1 }}>{error}</span>
             <button className="btn btn-sm p-0" onClick={() => setError('')} style={{ color: '#f87171', background: 'none', border: 'none' }}><FiX size={18} /></button>
           </div>
         )}
         {success && (
           <div className="d-flex align-items-center gap-2 mb-3" style={{
-            background: 'linear-gradient(135deg, #f0fdf4, #ecfdf5)',
+            background: isDark ? 'rgba(34,197,94,0.15)' : 'linear-gradient(135deg, #f0fdf4, #ecfdf5)',
             borderRadius: '0.85rem',
             padding: '0.85rem 1.15rem',
-            border: '1px solid #bbf7d0',
+            border: `1px solid ${isDark ? 'rgba(34,197,94,0.3)' : '#bbf7d0'}`,
             boxShadow: '0 4px 12px rgba(34,197,94,0.1)',
             animation: 'slideDown .3s ease'
           }}>
-            <div style={{ background: '#dcfce7', borderRadius: '50%', width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <div style={{ background: isDark ? 'rgba(34,197,94,0.2)' : '#dcfce7', borderRadius: '50%', width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
               <span style={{ fontSize: '0.85rem' }}>✅</span>
             </div>
-            <span style={{ color: '#166534', fontWeight: 500, fontSize: '0.88rem', flex: 1 }}>{success}</span>
+            <span style={{ color: isDark ? '#86efac' : '#166534', fontWeight: 500, fontSize: '0.88rem', flex: 1 }}>{success}</span>
             <button className="btn btn-sm p-0" onClick={() => setSuccess('')} style={{ color: '#4ade80', background: 'none', border: 'none' }}><FiX size={18} /></button>
           </div>
         )}
@@ -949,12 +952,12 @@ const Transactions = () => {
                 border: 'none',
                 background: 'transparent',
                 fontWeight: 600,
-                color: '#334155',
+                color: isDark ? '#e2e8f0' : '#334155',
                 fontSize: '0.9rem'
               }}
             >
               <span className="d-flex align-items-center gap-2">
-                <span style={{ background: '#eef2ff', borderRadius: '0.45rem', padding: '0.3rem', display: 'inline-flex' }}>
+                <span style={{ background: isDark ? '#312e81' : '#eef2ff', borderRadius: '0.45rem', padding: '0.3rem', display: 'inline-flex' }}>
                   <FiFilter size={15} style={{ color: '#6366f1' }} />
                 </span>
                 Filters & Search
@@ -962,8 +965,8 @@ const Transactions = () => {
                   <span style={{ background: '#6366f1', color: '#fff', borderRadius: '999px', fontSize: '0.65rem', padding: '0.1rem 0.45rem', fontWeight: 700 }}>Active</span>
                 )}
               </span>
-              <span style={{ background: '#f1f5f9', borderRadius: '0.4rem', padding: '0.25rem', display: 'inline-flex' }}>
-                {showFilters ? <FiChevronUp size={16} style={{ color: '#64748b' }} /> : <FiChevronDown size={16} style={{ color: '#64748b' }} />}
+              <span style={{ background: isDark ? '#334155' : '#f1f5f9', borderRadius: '0.4rem', padding: '0.25rem', display: 'inline-flex' }}>
+                {showFilters ? <FiChevronUp size={16} style={{ color: isDark ? '#94a3b8' : '#64748b' }} /> : <FiChevronDown size={16} style={{ color: isDark ? '#94a3b8' : '#64748b' }} />}
               </span>
             </button>
             <div style={{
@@ -1004,8 +1007,8 @@ const Transactions = () => {
                 </div>
                 <div className="col-md-2 d-flex align-items-end">
                   <button className="btn btn-sm w-100" type="button"
-                    style={{ background: '#f1f5f9', color: '#64748b', borderRadius: '0.55rem', border: '1.5px solid #e2e8f0', fontWeight: 500, padding: '0.45rem' }}
-                    onClick={() => setFilter({ type: '', category: '', startDate: '', endDate: '', paymentMethod: '' })}>
+                    style={{ background: isDark ? '#334155' : '#f1f5f9', color: isDark ? '#94a3b8' : '#64748b', borderRadius: '0.55rem', border: `1.5px solid ${isDark ? '#475569' : '#e2e8f0'}`, fontWeight: 500, padding: '0.45rem' }}
+                    onClick={() => setFilter({ type: '', category: '', startDate: '', endDate: '', paymentMethod: '' })}>                    
                     <FiRefreshCw size={13} style={{ marginRight: 4 }} /> Reset
                   </button>
                 </div>
@@ -1018,7 +1021,7 @@ const Transactions = () => {
         {canEdit && (
           <div className="txn-card" style={{ padding: '1.3rem 1.4rem', marginBottom: '1rem' }}>
             <div className="d-flex justify-content-between align-items-center mb-2">
-              <h6 className="mb-0 d-flex align-items-center gap-2" style={{ fontWeight: 700, color: '#1e293b', fontSize: '0.92rem' }}>
+              <h6 className="mb-0 d-flex align-items-center gap-2" style={{ fontWeight: 700, color: isDark ? '#e2e8f0' : '#1e293b', fontSize: '0.92rem' }}>
                 <span style={{ background: '#fef3c7', borderRadius: '0.45rem', padding: '0.3rem', display: 'inline-flex' }}>
                   <FiCreditCard size={15} style={{ color: '#d97706' }} />
                 </span>
@@ -1118,10 +1121,10 @@ const Transactions = () => {
 
         {/* ── TRANSACTIONS TABLE ── */}
         <div className="txn-card" style={{ overflow: 'hidden', marginBottom: '2rem' }}>
-          <div style={{ padding: '1.15rem 1.4rem', borderBottom: '1px solid #f1f5f9' }} className="d-flex justify-content-between align-items-center">
-            <h6 className="mb-0 d-flex align-items-center gap-2" style={{ fontWeight: 700, color: '#1e293b', fontSize: '0.92rem' }}>
-              <span style={{ background: '#f1f5f9', borderRadius: '0.45rem', padding: '0.3rem', display: 'inline-flex' }}>
-                <FiLayers size={15} style={{ color: '#475569' }} />
+          <div style={{ padding: '1.15rem 1.4rem', borderBottom: `1px solid ${isDark ? '#334155' : '#f1f5f9'}` }} className="d-flex justify-content-between align-items-center">
+            <h6 className="mb-0 d-flex align-items-center gap-2" style={{ fontWeight: 700, color: isDark ? '#e2e8f0' : '#1e293b', fontSize: '0.92rem' }}>
+              <span style={{ background: isDark ? '#334155' : '#f1f5f9', borderRadius: '0.45rem', padding: '0.3rem', display: 'inline-flex' }}>
+                <FiLayers size={15} style={{ color: isDark ? '#94a3b8' : '#475569' }} />
               </span>
               All Transactions
               <span style={{
@@ -1166,14 +1169,14 @@ const Transactions = () => {
                     <td colSpan={canEdit ? 7 : 6} className="text-center" style={{ padding: '4rem 0' }}>
                       <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
                         <div style={{
-                          background: 'linear-gradient(135deg, #f1f5f9, #e2e8f0)',
+                          background: isDark ? 'linear-gradient(135deg, #334155, #475569)' : 'linear-gradient(135deg, #f1f5f9, #e2e8f0)',
                           borderRadius: '1rem',
                           padding: '1.2rem',
                           marginBottom: 4
                         }}>
                           <FiFileText size={32} style={{ color: '#94a3b8' }} />
                         </div>
-                        <div style={{ fontWeight: 600, color: '#475569', fontSize: '0.95rem' }}>No transactions yet</div>
+                        <div style={{ fontWeight: 600, color: isDark ? '#cbd5e1' : '#475569', fontSize: '0.95rem' }}>No transactions yet</div>
                         <div style={{ fontSize: '0.82rem', color: '#94a3b8', maxWidth: 280 }}>Start tracking your finances by adding your first transaction</div>
                         {canEdit && (
                           <button className="btn btn-sm mt-2" onClick={() => setShowAddModal(true)}
@@ -1195,7 +1198,7 @@ const Transactions = () => {
                           <span style={{ fontWeight: 500, fontSize: '0.84rem' }}>{t.date ? t.date.slice(0, 10) : ''}</span>
                         </div>
                       </td>
-                      <td style={{ ...tdStyle, fontWeight: 600, color: '#0f172a', maxWidth: 220 }}>
+                      <td style={{ ...tdStyle, fontWeight: 600, color: isDark ? '#e2e8f0' : '#0f172a', maxWidth: 220 }}>
                         <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {t.description}
                         </div>
@@ -1252,7 +1255,7 @@ const Transactions = () => {
                               gap: 5,
                               fontWeight: 600,
                               fontSize: '0.82rem',
-                              color: '#1e293b'
+                              color: isDark ? '#e2e8f0' : '#1e293b'
                             }}>
                               <span style={{
                                 background: getPaymentMethodLabel(t) === 'Hand Cash' ? '#fef3c7' : '#dbeafe',
@@ -1354,35 +1357,35 @@ const Transactions = () => {
             <form onSubmit={(e) => { handleSubmit(e); if (!error) setShowAddModal(false); }} style={{ padding: '1.75rem' }}>
               <div className="row g-3">
                 <div className="col-12">
-                  <label className="form-label mb-1" style={{ fontSize: '0.76rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Description</label>
+                  <label className="form-label mb-1" style={{ fontSize: '0.76rem', fontWeight: 700, color: isDark ? '#94a3b8' : '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Description</label>
                   <input type="text" className="form-control txn-modal-input" name="description" placeholder="e.g. Office rent payment"
                     value={form.description} onChange={handleChange} required />
                 </div>
                 <div className="col-md-6">
-                  <label className="form-label mb-1" style={{ fontSize: '0.76rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Amount (₹)</label>
+                  <label className="form-label mb-1" style={{ fontSize: '0.76rem', fontWeight: 700, color: isDark ? '#94a3b8' : '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Amount (₹)</label>
                   <input type="number" className="form-control txn-modal-input" name="amount" placeholder="0.00"
                     value={form.amount} onChange={handleChange} required min="0" />
                 </div>
                 <div className="col-md-6">
-                  <label className="form-label mb-1" style={{ fontSize: '0.76rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Type</label>
+                  <label className="form-label mb-1" style={{ fontSize: '0.76rem', fontWeight: 700, color: isDark ? '#94a3b8' : '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Type</label>
                   <select className="form-select txn-modal-input" name="type" value={form.type} onChange={handleChange} required>
                     <option value="Income">💰 Income</option>
                     <option value="Expense">💸 Expense</option>
                   </select>
                 </div>
                 <div className="col-md-6">
-                  <label className="form-label mb-1" style={{ fontSize: '0.76rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Category</label>
+                  <label className="form-label mb-1" style={{ fontSize: '0.76rem', fontWeight: 700, color: isDark ? '#94a3b8' : '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Category</label>
                   <select className="form-select txn-modal-input" name="category" value={form.category} onChange={handleChange} required>
                     <option value="">Select Category</option>
                     {categories.map(c => <option key={c} value={c}>{c}</option>)}
                   </select>
                 </div>
                 <div className="col-md-6">
-                  <label className="form-label mb-1" style={{ fontSize: '0.76rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Date</label>
+                  <label className="form-label mb-1" style={{ fontSize: '0.76rem', fontWeight: 700, color: isDark ? '#94a3b8' : '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Date</label>
                   <input type="date" className="form-control txn-modal-input" name="date" value={form.date} onChange={handleChange} required />
                 </div>
                 <div className="col-12">
-                  <label className="form-label mb-1" style={{ fontSize: '0.76rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Payment Method</label>
+                  <label className="form-label mb-1" style={{ fontSize: '0.76rem', fontWeight: 700, color: isDark ? '#94a3b8' : '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Payment Method</label>
                   <select className="form-select txn-modal-input" name="paymentMethod" value={form.paymentMethod} onChange={handleChange} required>
                     <option value="">Select Method</option>
                     <option value="Bank Account">🏦 Bank Account</option>
@@ -1392,9 +1395,9 @@ const Transactions = () => {
               </div>
 
               {/* Modal Footer */}
-              <div className="d-flex justify-content-end gap-2 mt-4 pt-3" style={{ borderTop: '1.5px solid #f1f5f9' }}>
+              <div className="d-flex justify-content-end gap-2 mt-4 pt-3" style={{ borderTop: `1.5px solid ${isDark ? '#334155' : '#f1f5f9'}` }}>
                 <button type="button" className="btn"
-                  style={{ background: '#f1f5f9', color: '#64748b', border: '1.5px solid #e2e8f0', borderRadius: '0.6rem', padding: '0.55rem 1.3rem', fontWeight: 600, fontSize: '0.88rem' }}
+                  style={{ background: isDark ? '#334155' : '#f1f5f9', color: isDark ? '#94a3b8' : '#64748b', border: `1.5px solid ${isDark ? '#475569' : '#e2e8f0'}`, borderRadius: '0.6rem', padding: '0.55rem 1.3rem', fontWeight: 600, fontSize: '0.88rem' }}
                   onClick={() => { handleCancel(); setShowAddModal(false); }}>
                   Cancel
                 </button>
@@ -1431,12 +1434,11 @@ const Transactions = () => {
         @keyframes spin { to { transform: rotate(360deg) } }
 
         .txn-card {
-          background: #fff;
-          borderRadius: 1.1rem;
-          border: 1px solid #e2e8f0;
+          background: ${isDark ? '#1e293b' : '#fff'};
+          border: 1px solid ${isDark ? '#334155' : '#e2e8f0'};
           border-radius: 1.1rem;
           overflow: hidden;
-          box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 14px rgba(0,0,0,0.02);
+          box-shadow: ${isDark ? '0 1px 3px rgba(0,0,0,0.2), 0 4px 14px rgba(0,0,0,0.15)' : '0 1px 3px rgba(0,0,0,0.04), 0 4px 14px rgba(0,0,0,0.02)'};
         }
 
         .txn-btn-glass {
@@ -1499,12 +1501,12 @@ const Transactions = () => {
           transition: background .15s ease;
         }
         .txn-table-row:hover {
-          background: #f8fafc !important;
+          background: ${isDark ? '#334155' : '#f8fafc'} !important;
         }
 
         .txn-action-btn {
           background: transparent !important;
-          border: 1.5px solid #e2e8f0 !important;
+          border: 1.5px solid ${isDark ? '#334155' : '#e2e8f0'} !important;
           border-radius: 0.5rem !important;
           width: 34px !important;
           height: 34px !important;
@@ -1515,16 +1517,16 @@ const Transactions = () => {
           cursor: pointer !important;
         }
         .txn-action-edit { color: #3b82f6 !important; }
-        .txn-action-edit:hover { background: #eff6ff !important; border-color: #93c5fd !important; transform: translateY(-2px); box-shadow: 0 3px 8px rgba(59,130,246,0.15); }
+        .txn-action-edit:hover { background: ${isDark ? '#1e3a5f' : '#eff6ff'} !important; border-color: #93c5fd !important; transform: translateY(-2px); box-shadow: 0 3px 8px rgba(59,130,246,0.15); }
         .txn-action-download { color: #8b5cf6 !important; }
-        .txn-action-download:hover { background: #f5f3ff !important; border-color: #c4b5fd !important; transform: translateY(-2px); box-shadow: 0 3px 8px rgba(139,92,246,0.15); }
+        .txn-action-download:hover { background: ${isDark ? '#2e1065' : '#f5f3ff'} !important; border-color: #c4b5fd !important; transform: translateY(-2px); box-shadow: 0 3px 8px rgba(139,92,246,0.15); }
         .txn-action-delete { color: #ef4444 !important; }
-        .txn-action-delete:hover { background: #fef2f2 !important; border-color: #fca5a5 !important; transform: translateY(-2px); box-shadow: 0 3px 8px rgba(239,68,68,0.15); }
+        .txn-action-delete:hover { background: ${isDark ? '#450a0a' : '#fef2f2'} !important; border-color: #fca5a5 !important; transform: translateY(-2px); box-shadow: 0 3px 8px rgba(239,68,68,0.15); }
 
         .txn-spinner {
           width: 36px;
           height: 36px;
-          border: 3px solid #e2e8f0;
+          border: 3px solid ${isDark ? '#334155' : '#e2e8f0'};
           border-top-color: #6366f1;
           border-radius: 50%;
           animation: spin .7s linear infinite;
@@ -1543,27 +1545,29 @@ const Transactions = () => {
         }
 
         .txn-modal {
-          background: #fff;
+          background: ${isDark ? '#1e293b' : '#fff'};
           border-radius: 1.25rem;
           width: 100%;
           max-width: 640px;
           box-shadow: 0 25px 60px rgba(0,0,0,0.25), 0 0 0 1px rgba(255,255,255,0.05);
           overflow: hidden;
           animation: slideUp .3s ease;
+          color: ${isDark ? '#e2e8f0' : 'inherit'};
         }
 
         .txn-modal-input {
           border-radius: 0.65rem !important;
-          border: 2px solid #e2e8f0 !important;
+          border: 2px solid ${isDark ? '#334155' : '#e2e8f0'} !important;
           padding: 0.6rem 0.9rem !important;
           font-size: 0.9rem !important;
-          background: #f8fafc !important;
+          background: ${isDark ? '#0f172a' : '#f8fafc'} !important;
+          color: ${isDark ? '#e2e8f0' : '#1e293b'} !important;
           transition: all .2s ease !important;
         }
         .txn-modal-input:focus {
           border-color: #6366f1 !important;
           box-shadow: 0 0 0 3px rgba(99,102,241,0.1) !important;
-          background: #fff !important;
+          background: ${isDark ? '#0f172a' : '#fff'} !important;
         }
       `}</style>
     </div>
