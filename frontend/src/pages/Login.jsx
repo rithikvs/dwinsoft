@@ -17,18 +17,7 @@ const Login = () => {
         e.preventDefault();
         try {
             const res = await login(email, password);
-            // Redirect based on role
-            if (res.role === 'Admin') {
-                navigate('/admin');
-            } else if (res.role === 'HR') {
-                navigate('/hr');
-            } else if (res.role === 'Employee') {
-                navigate('/employee');
-            } else if (res.role === 'Accountant') {
-                navigate('/finance');
-            } else {
-                navigate('/');
-            }
+            navigate('/');
         } catch (err) {
             const msg = err.response?.data?.message || 'Login failed';
             setError(msg);

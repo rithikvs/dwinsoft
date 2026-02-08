@@ -11,7 +11,7 @@ exports.getAllHandCash = async (req, res) => {
 
 exports.createHandCash = async (req, res) => {
   try {
-    const { holder, amount, description } = req.body;
+    const { holder, amount, type, description } = req.body;
     
     if (!holder || !amount) {
       return res.status(400).json({ message: 'Holder and amount are required' });
@@ -19,7 +19,8 @@ exports.createHandCash = async (req, res) => {
 
     const handCash = new HandCash({ 
       holder, 
-      amount: Number(amount), 
+      amount: Number(amount),
+      type: type || 'Income',
       description 
     });
     await handCash.save();
@@ -43,7 +44,7 @@ exports.getHandCashById = async (req, res) => {
 
 exports.updateHandCash = async (req, res) => {
   try {
-    const { holder, amount, description } = req.body;
+    const { holder, amount, type, description } = req.body;
     
     if (!holder || !amount) {
       return res.status(400).json({ message: 'Holder and amount are required' });
@@ -53,7 +54,8 @@ exports.updateHandCash = async (req, res) => {
       req.params.id,
       { 
         holder, 
-        amount: Number(amount), 
+        amount: Number(amount),
+        type: type || 'Income',
         description 
       },
       { new: true, runValidators: true }
