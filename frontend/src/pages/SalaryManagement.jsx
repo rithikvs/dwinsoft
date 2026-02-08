@@ -1,14 +1,12 @@
 import React, { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
 import API_BASE_URL from '../utils/api';
-import { AuthContext } from '../context/AuthContext';
 import { ThemeContext } from '../context/ThemeContext';
 import { FaUsers, FaEdit, FaSave, FaTimes, FaRupeeSign, FaPhone, FaMapMarkerAlt, FaBriefcase, FaCalendarAlt, FaUniversity, FaPlus, FaTrash, FaCheckCircle, FaClock } from 'react-icons/fa';
 
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
 const SalaryManagement = () => {
-  const { token } = useContext(AuthContext);
   const { theme } = useContext(ThemeContext);
   const isDark = theme === 'dark';
   const [activeTab, setActiveTab] = useState('monthly');
@@ -32,6 +30,7 @@ const SalaryManagement = () => {
     try {
       setLoading(true);
       setError('');
+      const token = localStorage.getItem('token');
       const res = await axios.get(`${API_BASE_URL}/api/salary/staff`, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -47,6 +46,7 @@ const SalaryManagement = () => {
     try {
       setSalaryLoading(true);
       setError('');
+      const token = localStorage.getItem('token');
       const res = await axios.get(`${API_BASE_URL}/api/salary/records?month=${selectedMonth}&year=${selectedYear}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -74,6 +74,7 @@ const SalaryManagement = () => {
   const cancelEdit = () => { setEditingId(null); setEditData({}); };
   const saveEdit = async (id) => {
     try {
+      const token = localStorage.getItem('token');
       await axios.put(`${API_BASE_URL}/api/salary/staff/${id}`, editData, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -92,6 +93,7 @@ const SalaryManagement = () => {
     if (!salaryForm.userId) { setError('Please select an employee'); return; }
     if (!salaryForm.basicSalary) { setError('Please enter basic salary'); return; }
     try {
+      const token = localStorage.getItem('token');
       await axios.post(`${API_BASE_URL}/api/salary/records`, {
         ...salaryForm, month: selectedMonth, year: selectedYear,
       }, {
@@ -111,6 +113,7 @@ const SalaryManagement = () => {
   const handleDeleteRecord = async (id) => {
     if (!window.confirm('Delete this salary record?')) return;
     try {
+      const token = localStorage.getItem('token');
       await axios.delete(`${API_BASE_URL}/api/salary/records/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -122,6 +125,7 @@ const SalaryManagement = () => {
 
   const handleMarkPaid = async (record) => {
     try {
+      const token = localStorage.getItem('token');
       await axios.post(`${API_BASE_URL}/api/salary/records`, {
         userId: record.user._id, month: record.month, year: record.year,
         basicSalary: record.basicSalary, bonus: record.bonus, deductions: record.deductions,
