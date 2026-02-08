@@ -1,12 +1,14 @@
 import React, { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
 import API_BASE_URL from '../utils/api';
+import { AuthContext } from '../context/AuthContext';
 import { ThemeContext } from '../context/ThemeContext';
 import { FaUsers, FaEdit, FaSave, FaTimes, FaRupeeSign, FaPhone, FaMapMarkerAlt, FaBriefcase, FaCalendarAlt, FaUniversity, FaPlus, FaTrash, FaCheckCircle, FaClock } from 'react-icons/fa';
 
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
 const SalaryManagement = () => {
+  const { token } = useContext(AuthContext);
   const { theme } = useContext(ThemeContext);
   const isDark = theme === 'dark';
   const [activeTab, setActiveTab] = useState('monthly');
@@ -30,7 +32,9 @@ const SalaryManagement = () => {
     try {
       setLoading(true);
       setError('');
-      const res = await axios.get(`${API_BASE_URL}/api/salary/staff`);
+      const res = await axios.get(`${API_BASE_URL}/api/salary/staff`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       setStaff(res.data);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to load staff data');
@@ -43,7 +47,9 @@ const SalaryManagement = () => {
     try {
       setSalaryLoading(true);
       setError('');
-      const res = await axios.get(`${API_BASE_URL}/api/salary/records?month=${selectedMonth}&year=${selectedYear}`);
+      const res = await axios.get(`${API_BASE_URL}/api/salary/records?month=${selectedMonth}&year=${selectedYear}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       setSalaryRecords(res.data);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to load salary records');
@@ -68,7 +74,9 @@ const SalaryManagement = () => {
   const cancelEdit = () => { setEditingId(null); setEditData({}); };
   const saveEdit = async (id) => {
     try {
-      await axios.put(`${API_BASE_URL}/api/salary/staff/${id}`, editData);
+      await axios.put(`${API_BASE_URL}/api/salary/staff/${id}`, editData, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       setSuccess('Updated successfully!');
       setEditingId(null);
       fetchStaff();
@@ -86,6 +94,8 @@ const SalaryManagement = () => {
     try {
       await axios.post(`${API_BASE_URL}/api/salary/records`, {
         ...salaryForm, month: selectedMonth, year: selectedYear,
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
       });
       setSuccess('Salary record saved!');
       setShowAddForm(false);
@@ -101,7 +111,9 @@ const SalaryManagement = () => {
   const handleDeleteRecord = async (id) => {
     if (!window.confirm('Delete this salary record?')) return;
     try {
-      await axios.delete(`${API_BASE_URL}/api/salary/records/${id}`);
+      await axios.delete(`${API_BASE_URL}/api/salary/records/${id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       setSuccess('Record deleted');
       fetchSalaryRecords();
       setTimeout(() => setSuccess(''), 3000);
@@ -114,6 +126,8 @@ const SalaryManagement = () => {
         userId: record.user._id, month: record.month, year: record.year,
         basicSalary: record.basicSalary, bonus: record.bonus, deductions: record.deductions,
         notes: record.notes, status: record.status === 'Paid' ? 'Pending' : 'Paid',
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
       });
       fetchSalaryRecords();
       setSuccess(`Marked as ${record.status === 'Paid' ? 'Pending' : 'Paid'}`);
