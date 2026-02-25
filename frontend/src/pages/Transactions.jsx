@@ -52,7 +52,7 @@ const Transactions = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  
+
   // Form toggle states
   const [showHandCashForm, setShowHandCashForm] = useState(false);
   const [showBankAccountForm, setShowBankAccountForm] = useState(false);
@@ -188,12 +188,12 @@ const Transactions = () => {
     setSuccess('');
 
     try {
-      const payload = { 
-        ...form, 
+      const payload = {
+        ...form,
         amount: Number(form.amount),
         paymentMethod: form.paymentMethod
       };
-      
+
       if (editingId) {
         await axios.put(`${API_BASE_URL}/api/transactions/${editingId}`, payload);
         setSuccess('Transaction updated successfully');
@@ -1008,7 +1008,7 @@ const Transactions = () => {
                 <div className="col-md-2 d-flex align-items-end">
                   <button className="btn btn-sm w-100" type="button"
                     style={{ background: isDark ? '#334155' : '#f1f5f9', color: isDark ? '#94a3b8' : '#64748b', borderRadius: '0.55rem', border: `1.5px solid ${isDark ? '#475569' : '#e2e8f0'}`, fontWeight: 500, padding: '0.45rem' }}
-                    onClick={() => setFilter({ type: '', category: '', startDate: '', endDate: '', paymentMethod: '' })}>                    
+                    onClick={() => setFilter({ type: '', category: '', startDate: '', endDate: '', paymentMethod: '' })}>
                     <FiRefreshCw size={13} style={{ marginRight: 4 }} /> Reset
                   </button>
                 </div>
@@ -1269,7 +1269,7 @@ const Transactions = () => {
                             </span>
                             {getPaymentMethodLabel(t) === 'Bank Account' && t.bankAccountId && (
                               <div style={{ fontSize: '0.7rem', color: '#94a3b8', marginTop: 3, fontWeight: 500 }}>
-                                {t.bankAccountId.accountNumber} – {t.bankAccountId.accountHolder}
+                                {t.bankAccountId.accountNumber} – {t.bankAccountId.accountHolderName}
                               </div>
                             )}
                             {getPaymentMethodLabel(t) === 'Hand Cash' && t.handCashId && (
