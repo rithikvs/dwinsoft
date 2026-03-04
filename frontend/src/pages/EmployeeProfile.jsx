@@ -1,11 +1,35 @@
-import React, { useContext } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { ThemeContext } from '../context/ThemeContext';
+import ProfilePhotoUpload from '../components/ProfilePhotoUpload';
+import axios from 'axios';
+import API_BASE_URL from '../utils/api';
 
 const EmployeeProfile = () => {
   const { user } = useContext(AuthContext);
   const { theme } = useContext(ThemeContext);
+  const [profilePhoto, setProfilePhoto] = useState(null);
+  const [loading, setLoading] = useState(true);
   const isDark = theme === 'dark';
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const res = await axios.get(`${API_BASE_URL}/api/profile-photo/me`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (res.data.profilePhoto) {
+          setProfilePhoto(res.data.profilePhoto);
+        }
+      } catch (err) {
+        console.error('Failed to fetch profile', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProfile();
+  }, []);
 
   const cardBg = isDark ? '#1e293b' : '#fff';
   const textColor = isDark ? '#e2e8f0' : '#1e293b';
@@ -112,9 +136,24 @@ const EmployeeProfile = () => {
       {/* Profile Card */}
       <div style={styles.profileCard}>
         <div style={styles.profileBanner}>
-          <div style={styles.avatar}>
-            {(user?.username || 'E').charAt(0).toUpperCase()}
-          </div>
+          {profilePhoto ? (
+            <img
+              src={`http://localhost:5000${profilePhoto}`}
+              alt="Profile"
+              style={{
+                ...styles.avatar,
+                width: '80px',
+                height: '80px',
+                borderRadius: '50%',
+                objectFit: 'cover',
+                background: 'transparent'
+              }}
+            />
+          ) : (
+            <div style={styles.avatar}>
+              {(user?.username || 'E').charAt(0).toUpperCase()}
+            </div>
+          )}
         </div>
         <div style={styles.profileBody}>
           <h3 style={{ margin: '0 0 0.25rem 0', color: textColor, fontSize: '1.4rem' }}>
@@ -203,6 +242,16 @@ const EmployeeProfile = () => {
             </div>
           ))}
         </div>
+      </div>
+
+      {/* Profile Photo Section */}
+      <div style={{ marginTop: '2rem' }}>
+        <h3 style={{ margin: '0 0 1.5rem 0', color: textColor }}>Profile Photo</h3>
+        <ProfilePhotoUpload
+          currentPhoto={profilePhoto}
+          onPhotoUpdate={setProfilePhoto}
+          theme={theme}
+        />
       </div>
     </div>
   );

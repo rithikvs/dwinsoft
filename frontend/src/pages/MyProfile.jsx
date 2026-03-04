@@ -3,6 +3,7 @@ import { AuthContext } from '../context/AuthContext';
 import { ThemeContext } from '../context/ThemeContext';
 import axios from 'axios';
 import API_BASE_URL from '../utils/api';
+import ProfilePhotoUpload from '../components/ProfilePhotoUpload';
 import { FaRupeeSign, FaPhone, FaMapMarkerAlt, FaBriefcase, FaCalendarAlt, FaUniversity, FaEnvelope, FaUserTag, FaShieldAlt, FaCheckCircle, FaClock } from 'react-icons/fa';
 
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -13,6 +14,7 @@ const MyProfile = () => {
   const isDark = theme === 'dark';
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [profilePhoto, setProfilePhoto] = useState(null);
   const [salaryRecords, setSalaryRecords] = useState([]);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
@@ -48,6 +50,23 @@ const MyProfile = () => {
     fetchSalaryRecords();
   }, []);
 
+  useEffect(() => {
+    const fetchProfilePhoto = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const res = await axios.get(`${API_BASE_URL}/api/profile-photo/me`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (res.data.profilePhoto) {
+          setProfilePhoto(res.data.profilePhoto);
+        }
+      } catch (err) {
+        console.error('Failed to fetch profile photo', err);
+      }
+    };
+    fetchProfilePhoto();
+  }, []);
+
   const textColor = isDark ? '#e2e8f0' : '#1e293b';
   const mutedColor = isDark ? '#94a3b8' : '#64748b';
   const cardBg = isDark ? '#1e293b' : '#fff';
@@ -78,15 +97,47 @@ const MyProfile = () => {
       {/* Profile Banner Card */}
       <div style={{ background: cardBg, borderRadius: '16px', boxShadow: isDark ? '0 2px 12px rgba(0,0,0,0.3)' : '0 4px 24px rgba(0,0,0,0.06)', overflow: 'hidden', marginBottom: '1.5rem' }}>
         <div style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', height: '120px', position: 'relative' }}>
-          <div style={{
-            width: '80px', height: '80px', borderRadius: '50%', background: '#fff',
-            border: '4px solid #fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: '2rem', fontWeight: 700, color: '#667eea',
-            position: 'absolute', bottom: '-40px', left: '2rem',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-          }}>
-            {(p.username || 'U').charAt(0).toUpperCase()}
-          </div>
+          {profilePhoto ? (
+            <img
+              src={`http://localhost:5000${profilePhoto}`}
+              alt="Profile"
+              style={{
+                width: '80px',
+                height: '80px',
+                borderRadius: '50%',
+                background: '#fff',
+                border: '4px solid #fff',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                position: 'absolute',
+                bottom: '-40px',
+                left: '2rem',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                objectFit: 'cover'
+              }}
+            />
+          ) : (
+            <div style={{
+              width: '80px',
+              height: '80px',
+              borderRadius: '50%',
+              background: '#fff',
+              border: '4px solid #fff',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '2rem',
+              fontWeight: 700,
+              color: '#667eea',
+              position: 'absolute',
+              bottom: '-40px',
+              left: '2rem',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+            }}>
+              {(p.username || 'U').charAt(0).toUpperCase()}
+            </div>
+          )}
         </div>
         <div style={{ padding: '3.5rem 2rem 1.5rem 2rem' }}>
           <h3 style={{ margin: '0 0 0.25rem 0', color: textColor, fontSize: '1.4rem' }}>{p.username || 'User'}</h3>
@@ -238,6 +289,16 @@ const MyProfile = () => {
             </div>
           );
         })()}
+      </div>
+
+      {/* Profile Photo Section */}
+      <div style={{ marginTop: '2rem' }}>
+        <h3 style={{ margin: '0 0 1.5rem 0', color: textColor }}>Profile Photo</h3>
+        <ProfilePhotoUpload
+          currentPhoto={profilePhoto}
+          onPhotoUpdate={setProfilePhoto}
+          theme={theme}
+        />
       </div>
     </div>
   );

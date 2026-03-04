@@ -10,7 +10,6 @@ import AccessDenied from './pages/AccessDenied';
 import CreateUser from './pages/CreateUser';
 import Transactions from './pages/Transactions';
 import Invoices from './pages/Invoices';
-import Debts from './pages/Debts';
 import BankAccounts from './pages/BankAccounts';
 import HandCash from './pages/HandCash';
 import RecycleBin from './pages/RecycleBin';
@@ -96,8 +95,6 @@ function App() {
               <Route path="/transactions" element={<ProtectedRoute roles={['Admin', 'Accountant', 'HR', 'Employee']}><Transactions /></ProtectedRoute>} />
               {/* Invoices: Admin, Accountant (full); HR (salary view); Employee (own payslip only) */}
               <Route path="/invoices" element={<ProtectedRoute roles={['Admin', 'Accountant', 'HR', 'Employee']}><Invoices /></ProtectedRoute>} />
-              {/* Debts: Admin, Accountant (full); HR (deductions view); Employee (own deductions only) */}
-              <Route path="/debts" element={<ProtectedRoute roles={['Admin', 'Accountant', 'HR', 'Employee']}><Debts /></ProtectedRoute>} />
               {/* Bank Accounts: Admin, Accountant (full); HR (read-only); Employee (no access) */}
               <Route path="/bank-accounts" element={<ProtectedRoute roles={['Admin', 'Accountant', 'HR']}><BankAccounts /></ProtectedRoute>} />
               {/* Hand Cash: Admin, Accountant (full); HR (salary cash view); Employee (no access) */}

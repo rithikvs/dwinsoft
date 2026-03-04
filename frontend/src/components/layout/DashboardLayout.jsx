@@ -1,14 +1,37 @@
-import React, { useContext } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { Container, Nav, Navbar, Button } from 'react-bootstrap';
 import { AuthContext } from '../../context/AuthContext';
 import { ThemeContext } from '../../context/ThemeContext';
 import { Link, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { FaHome, FaExchangeAlt, FaFileInvoice, FaMoneyBillWave, FaUniversity, FaHandHoldingUsd, FaRecycle, FaCog, FaSignOutAlt, FaUserCircle, FaIdBadge, FaRupeeSign } from 'react-icons/fa';
+import axios from 'axios';
+import API_BASE_URL from '../../utils/api';
 
 const DashboardLayout = () => {
     const { user, logout } = useContext(AuthContext);
     const { theme } = useContext(ThemeContext);
     const navigate = useNavigate();
+    const [profilePhoto, setProfilePhoto] = useState(null);
+
+    useEffect(() => {
+        // Only fetch profile photo for HR and Employee roles
+        if (user?.role === 'HR' || user?.role === 'Employee') {
+            const fetchProfilePhoto = async () => {
+                try {
+                    const token = localStorage.getItem('token');
+                    const res = await axios.get(`${API_BASE_URL}/api/profile-photo/me`, {
+                        headers: { Authorization: `Bearer ${token}` }
+                    });
+                    if (res.data.profilePhoto) {
+                        setProfilePhoto(res.data.profilePhoto);
+                    }
+                } catch (err) {
+                    console.error('Failed to fetch profile photo', err);
+                }
+            };
+            fetchProfilePhoto();
+        }
+    }, [user?.role]);
 
     const handleLogout = () => {
         logout();
@@ -22,7 +45,6 @@ const DashboardLayout = () => {
         { to: '/', label: 'Dashboard', icon: <FaHome />, roles: ['Admin','Accountant','HR','Employee'] },
         { to: '/transactions', label: 'Transactions', icon: <FaExchangeAlt />, roles: ['Admin','Accountant','HR','Employee'] },
         { to: '/invoices', label: 'Invoices', icon: <FaFileInvoice />, roles: ['Admin','Accountant','HR','Employee'] },
-        { to: '/debts', label: 'Debts', icon: <FaMoneyBillWave />, roles: ['Admin','Accountant','HR','Employee'] },
         { to: '/bank-accounts', label: 'Bank Accounts', icon: <FaUniversity />, roles: ['Admin','Accountant','HR'] },
         { to: '/hand-cash', label: 'Hand Cash', icon: <FaHandHoldingUsd />, roles: ['Admin','Accountant','HR'] },
         { to: '/recycle-bin', label: 'Recycle Bin', icon: <FaRecycle />, roles: ['Admin','Accountant','HR'] },
@@ -55,7 +77,22 @@ const DashboardLayout = () => {
                 </Nav>
                 <div className="mt-auto border-top p-3">
                     <div className="d-flex align-items-center mb-2">
-                        <FaUserCircle className="me-2" style={{ fontSize: 22, color: theme === 'dark' ? '#8ecfff' : undefined }} />
+                        {(user?.role === 'HR' || user?.role === 'Employee') && profilePhoto ? (
+                            <img
+                                src={`http://localhost:5000${profilePhoto}`}
+                                alt={user?.username}
+                                style={{
+                                    width: '44px',
+                                    height: '44px',
+                                    borderRadius: '50%',
+                                    marginRight: '0.5rem',
+                                    objectFit: 'cover',
+                                    border: '2px solid #667eea'
+                                }}
+                            />
+                        ) : (
+                            <FaUserCircle className="me-2" style={{ fontSize: 22, color: theme === 'dark' ? '#8ecfff' : undefined }} />
+                        )}
                         <div>
                             <div style={{ fontWeight: 600 }}>{user?.username || 'User'}</div>
                             <div style={{ fontSize: 13, color: theme === 'dark' ? '#b0b0b0' : '#888' }}>{user?.email || 'info@dwinsoft.in'}</div>

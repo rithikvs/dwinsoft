@@ -1003,7 +1003,7 @@ const Invoices = () => {
                     onChange={handleInputChange}
                     style={formStyles.input}
                     required
-                    placeholder="John Doe"
+                    placeholder="ur name"
                   />
                 </div>
                 <div style={formStyles.inputGroup}>
@@ -1015,7 +1015,7 @@ const Invoices = () => {
                     onChange={handleInputChange}
                     style={formStyles.input}
                     required
-                    placeholder="john@example.com"
+                    placeholder="name@example.com"
                   />
                 </div>
                 <div style={formStyles.inputGroup}>

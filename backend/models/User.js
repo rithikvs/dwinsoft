@@ -29,12 +29,16 @@ const UserSchema = new mongoose.Schema({
     salary: { type: Number, default: 0 },
     bankName: { type: String, default: '' },
     bankAccountNumber: { type: String, default: '' },
-    ifscCode: { type: String, default: '' }
+    ifscCode: { type: String, default: '' },
+    profilePhoto: {
+        type: String,
+        default: null
+    }
 });
 
-UserSchema.pre('save', async function (next) {
+UserSchema.pre('save', async function () {
     if (!this.isModified('password')) {
-        return next();
+        return;
     }
     const salt = await bcrypt.genSalt(10);
     this.password = await bcrypt.hash(this.password, salt);

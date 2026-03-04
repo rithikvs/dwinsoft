@@ -159,7 +159,7 @@ const CreateUser = () => {
                 <label style={labelStyle}><FaUserTag /> Username</label>
                 <input
                   type="text" name="username" value={username} onChange={onChange}
-                  placeholder="e.g. john" required autoComplete="new-username"
+                  placeholder="e.g. ur name" required autoComplete="new-username"
                   style={inputStyle}
                 />
               </div>
@@ -261,14 +261,26 @@ const CreateUser = () => {
                       >
                         <td style={{ padding: '0.7rem 1rem' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                            <div style={{
-                              width: '32px', height: '32px', borderRadius: '50%',
-                              background: `linear-gradient(135deg, ${rc.bg}, ${rc.color}20)`,
-                              color: rc.color, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                              fontSize: '0.8rem', fontWeight: 700, flexShrink: 0,
-                            }}>
-                              {u.username?.charAt(0).toUpperCase()}
-                            </div>
+                            {u.profilePhoto ? (
+                              <img
+                                src={`${API_BASE_URL.replace('/api', '')}${u.profilePhoto}`}
+                                alt={u.username}
+                                style={{
+                                  width: '32px', height: '32px', borderRadius: '50%',
+                                  objectFit: 'cover', flexShrink: 0,
+                                  border: `2px solid ${rc.color}`,
+                                }}
+                              />
+                            ) : (
+                              <div style={{
+                                width: '32px', height: '32px', borderRadius: '50%',
+                                background: `linear-gradient(135deg, ${rc.bg}, ${rc.color}20)`,
+                                color: rc.color, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                fontSize: '0.8rem', fontWeight: 700, flexShrink: 0,
+                              }}>
+                                {u.username?.charAt(0).toUpperCase()}
+                              </div>
+                            )}
                             <span style={{ fontWeight: 600, color: textColor, fontSize: '0.85rem' }}>{u.username}</span>
                           </div>
                         </td>

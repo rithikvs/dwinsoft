@@ -70,7 +70,7 @@ const upsertMonthlySalary = async (req, res) => {
                 notes: notes || '',
                 status: status || 'Pending',
                 paidDate: status === 'Paid' ? new Date() : null,
-                createdBy: req.user.id,
+                createdBy: req.user._id,
             },
             { new: true, upsert: true }
         );
@@ -118,7 +118,7 @@ const getAllSalaryRecords = async (req, res) => {
 // GET own salary records (HR/Employee)
 const getMySalaryRecords = async (req, res) => {
     try {
-        const records = await SalaryRecord.find({ user: req.user.id })
+        const records = await SalaryRecord.find({ user: req.user._id })
             .sort({ year: -1, month: -1 });
         res.json(records);
     } catch (err) {
@@ -142,7 +142,7 @@ const deleteSalaryRecord = async (req, res) => {
 // GET own profile (any authenticated user)
 const getMyProfile = async (req, res) => {
     try {
-        const user = await User.findById(req.user.id).select('-password');
+        const user = await User.findById(req.user._id).select('-password');
         if (!user) return res.status(404).json({ message: 'User not found' });
         res.json(user);
     } catch (err) {
