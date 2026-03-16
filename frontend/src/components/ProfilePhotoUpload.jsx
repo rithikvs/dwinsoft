@@ -94,7 +94,7 @@ const ProfilePhotoUpload = ({ currentPhoto, onPhotoUpdate, theme }) => {
                             height: '120px',
                             borderRadius: '50%',
                             objectFit: 'cover',
-                            border: `3px solid #667eea`,
+                            border: `3px solid #2563eb`,
                             boxShadow: isDark ? '0 4px 12px rgba(0,0,0,0.3)' : '0 4px 12px rgba(0,0,0,0.1)'
                         }}
                     />
@@ -108,7 +108,7 @@ const ProfilePhotoUpload = ({ currentPhoto, onPhotoUpdate, theme }) => {
                         alignItems: 'center',
                         justifyContent: 'center',
                         fontSize: '3rem',
-                        color: '#667eea'
+                        color: '#2563eb'
                     }}>
                         <FaCamera />
                     </div>
@@ -139,7 +139,7 @@ const ProfilePhotoUpload = ({ currentPhoto, onPhotoUpdate, theme }) => {
 
             <label style={{
                 display: 'inline-block',
-                background: '#667eea',
+                background: '#2563eb',
                 color: 'white',
                 padding: '0.5rem 1.5rem',
                 borderRadius: '8px',

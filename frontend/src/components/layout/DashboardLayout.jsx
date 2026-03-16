@@ -87,7 +87,7 @@ const DashboardLayout = () => {
                                     borderRadius: '50%',
                                     marginRight: '0.5rem',
                                     objectFit: 'cover',
-                                    border: '2px solid #667eea'
+                                    border: '2px solid #2563eb'
                                 }}
                             />
                         ) : (

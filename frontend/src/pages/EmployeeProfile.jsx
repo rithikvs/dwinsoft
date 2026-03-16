@@ -54,7 +54,7 @@ const EmployeeProfile = () => {
       marginBottom: '1.5rem',
     },
     profileBanner: {
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      background: 'linear-gradient(135deg, #2563eb 0%, #1e40af 100%)',
       height: '120px',
       position: 'relative',
     },
@@ -69,7 +69,7 @@ const EmployeeProfile = () => {
       justifyContent: 'center',
       fontSize: '2rem',
       fontWeight: '700',
-      color: '#667eea',
+      color: '#2563eb',
       position: 'absolute',
       bottom: '-40px',
       left: '2rem',
@@ -163,7 +163,7 @@ const EmployeeProfile = () => {
             {user?.email || 'No email on file'}
           </p>
           <div style={{ marginTop: '0.75rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-            <span style={{ ...styles.badge, background: '#ede9fe', color: '#7c3aed' }}>
+            <span style={{ ...styles.badge, background: '#dbeafe', color: '#2563eb' }}>
               {user?.role || 'Employee'}
             </span>
             <span style={{ ...styles.badge, background: '#d1fae5', color: '#059669' }}>
@@ -188,7 +188,7 @@ const EmployeeProfile = () => {
           </div>
           <div style={styles.infoRow}>
             <span style={styles.label}>Role</span>
-            <span style={{ ...styles.badge, background: '#ede9fe', color: '#7c3aed' }}>
+            <span style={{ ...styles.badge, background: '#dbeafe', color: '#2563eb' }}>
               {user?.role || 'Employee'}
             </span>
           </div>

@@ -131,7 +131,7 @@ const HandCash = () => {
     { title: 'Total Income', value: fmt(totalIncome), sub: `Records: ${fmt(hcIncome)} | Txns: ${fmt(txnIncome)}`, gradient: 'linear-gradient(135deg, #059669, #34d399)', icon: <FiTrendingUp size={20} />, shadow: 'rgba(5,150,105,0.3)' },
     { title: 'Total Expense', value: fmt(totalExpense), sub: `Records: ${fmt(hcExpense)} | Txns: ${fmt(txnExpense)}`, gradient: 'linear-gradient(135deg, #dc2626, #f87171)', icon: <FiTrendingDown size={20} />, shadow: 'rgba(220,38,38,0.3)' },
     { title: 'Net Balance', value: fmt(netBalance), sub: 'Income − Expense', gradient: netBalance >= 0 ? 'linear-gradient(135deg, #2563eb, #60a5fa)' : 'linear-gradient(135deg, #dc2626, #ef4444)', icon: <FiDollarSign size={20} />, shadow: netBalance >= 0 ? 'rgba(37,99,235,0.3)' : 'rgba(220,38,38,0.3)' },
-    { title: 'Total Entries', value: `${handCash.length + handCashTransactions.length}`, sub: `${handCash.length} records  |  ${handCashTransactions.length} transactions`, gradient: 'linear-gradient(135deg, #7c3aed, #a78bfa)', icon: <FiHash size={20} />, shadow: 'rgba(124,58,237,0.3)' },
+    { title: 'Total Entries', value: `${handCash.length + handCashTransactions.length}`, sub: `${handCash.length} records  |  ${handCashTransactions.length} transactions`, gradient: 'linear-gradient(135deg, #2563eb, #60a5fa)', icon: <FiHash size={20} />, shadow: 'rgba(37,99,235,0.3)' },
   ];
 
   return (
@@ -155,7 +155,7 @@ const HandCash = () => {
               display: 'flex', alignItems: 'center', gap: '0.4rem',
               padding: '0.7rem 1.5rem', borderRadius: '12px', fontWeight: 600, cursor: 'pointer',
               border: 'none', fontSize: '0.9rem',
-              background: showForm ? (isDark ? '#334155' : '#e2e8f0') : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              background: showForm ? (isDark ? '#334155' : '#e2e8f0') : 'linear-gradient(135deg, #2563eb 0%, #1e40af 100%)',
               color: showForm ? muted : '#fff',
               boxShadow: showForm ? 'none' : '0 4px 14px rgba(102,126,234,0.35)',
               transition: 'all 0.2s',
@@ -233,7 +233,7 @@ const HandCash = () => {
                     fontSize: '0.9rem', background: inputBg, color: text, outline: 'none',
                     transition: 'border-color 0.2s',
                   }}
-                  onFocus={e => e.target.style.borderColor = '#667eea'}
+                  onFocus={e => e.target.style.borderColor = '#2563eb'}  
                   onBlur={e => e.target.style.borderColor = border}
                 />
               </div>
@@ -247,7 +247,7 @@ const HandCash = () => {
                     fontSize: '0.9rem', background: inputBg, color: text, outline: 'none',
                     transition: 'border-color 0.2s',
                   }}
-                  onFocus={e => e.target.style.borderColor = '#667eea'}
+                  onFocus={e => e.target.style.borderColor = '#2563eb'}
                   onBlur={e => e.target.style.borderColor = border}
                 />
               </div>
@@ -260,7 +260,7 @@ const HandCash = () => {
                     fontSize: '0.9rem', background: inputBg, color: text, outline: 'none',
                     transition: 'border-color 0.2s',
                   }}
-                  onFocus={e => e.target.style.borderColor = '#667eea'}
+                  onFocus={e => e.target.style.borderColor = '#2563eb'}
                   onBlur={e => e.target.style.borderColor = border}
                 >
                   <option value="Income">💰 Income</option>
@@ -277,7 +277,7 @@ const HandCash = () => {
                     fontSize: '0.9rem', background: inputBg, color: text, outline: 'none',
                     transition: 'border-color 0.2s',
                   }}
-                  onFocus={e => e.target.style.borderColor = '#667eea'}
+                  onFocus={e => e.target.style.borderColor = '#2563eb'}
                   onBlur={e => e.target.style.borderColor = border}
                 />
               </div>
@@ -305,7 +305,7 @@ const HandCash = () => {
                 }}>Cancel</button>
                 <button type="submit" style={{
                   padding: '0.65rem 1.5rem', borderRadius: '10px', fontWeight: 600, cursor: 'pointer',
-                  border: 'none', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  border: 'none', background: 'linear-gradient(135deg, #2563eb 0%, #1e40af 100%)',
                   color: '#fff', fontSize: '0.88rem', boxShadow: '0 4px 12px rgba(102,126,234,0.3)',
                 }}>{editingId ? 'Update Record' : 'Add Record'}</button>
               </div>
@@ -327,7 +327,7 @@ const HandCash = () => {
             <button key={tab.key} onClick={() => setActiveTab(tab.key)} style={{
               padding: '0.55rem 1.25rem', borderRadius: '999px', fontWeight: 600, fontSize: '0.85rem',
               cursor: 'pointer', border: 'none', transition: 'all 0.2s',
-              background: activeTab === tab.key ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' : (isDark ? '#334155' : '#f1f5f9'),
+              background: activeTab === tab.key ? 'linear-gradient(135deg, #2563eb 0%, #1e40af 100%)' : (isDark ? '#334155' : '#f1f5f9'),
               color: activeTab === tab.key ? '#fff' : muted,
               boxShadow: activeTab === tab.key ? '0 4px 12px rgba(102,126,234,0.3)' : 'none',
             }}>{tab.label}</button>
@@ -344,7 +344,7 @@ const HandCash = () => {
               width: '260px', background: inputBg, color: text,
               transition: 'border-color 0.2s',
             }}
-            onFocus={e => e.target.style.borderColor = '#667eea'}
+            onFocus={e => e.target.style.borderColor = '#2563eb'}
             onBlur={e => e.target.style.borderColor = border}
           />
         </div>
@@ -387,7 +387,7 @@ const HandCash = () => {
                           <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
                             <div style={{
                               width: '32px', height: '32px', borderRadius: '8px',
-                              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                              background: 'linear-gradient(135deg, #2563eb 0%, #1e40af 100%)',
                               display: 'flex', alignItems: 'center', justifyContent: 'center',
                               color: '#fff', fontSize: '0.8rem', fontWeight: 700, flexShrink: 0,
                             }}>{hc.holder.charAt(0).toUpperCase()}</div>

@@ -7,7 +7,7 @@ import { FaUserPlus, FaUsers, FaEnvelope, FaLock, FaUserTag, FaCheckCircle, FaEx
 const ROLE_COLORS = {
   Admin: { bg: '#dbeafe', color: '#1d4ed8' },
   HR: { bg: '#fef3c7', color: '#b45309' },
-  Employee: { bg: '#ede9fe', color: '#7c3aed' },
+  Employee: { bg: '#dbeafe', color: '#2563eb' },
   Accountant: { bg: '#d1fae5', color: '#059669' },
   Auditor: { bg: '#fce7f3', color: '#be185d' },
 };
@@ -105,8 +105,8 @@ const CreateUser = () => {
         padding: '1.5rem 1.75rem', borderRadius: '16px', marginBottom: '1.5rem',
         background: isDark
           ? 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)'
-          : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-        boxShadow: isDark ? '0 4px 20px rgba(0,0,0,0.4)' : '0 4px 20px rgba(102,126,234,0.3)',
+          : 'linear-gradient(135deg, #2563eb 0%, #1e40af 100%)',
+        boxShadow: isDark ? '0 4px 20px rgba(0,0,0,0.4)' : '0 4px 20px rgba(37,99,235,0.3)',
       }}>
         <div>
           <h2 style={{ margin: 0, color: '#fff', display: 'flex', alignItems: 'center', gap: '0.6rem', fontSize: '1.5rem' }}>
@@ -157,7 +157,7 @@ const CreateUser = () => {
             padding: '1rem 1.25rem', borderBottom: `1px solid ${borderColor}`,
             display: 'flex', alignItems: 'center', gap: '0.5rem',
           }}>
-            <FaUserPlus style={{ color: '#667eea', fontSize: '1rem' }} />
+            <FaUserPlus style={{ color: '#2563eb', fontSize: '1rem' }} />
             <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 600, color: textColor }}>New Account</h3>
           </div>
           <form onSubmit={onSubmit} autoComplete="off" style={{ padding: '1.25rem' }}>
@@ -214,7 +214,7 @@ const CreateUser = () => {
             </div>
             <button type="submit" disabled={loading} style={{
               width: '100%', marginTop: '1.25rem', padding: '0.7rem', borderRadius: '10px',
-              border: 'none', background: loading ? '#94a3b8' : 'linear-gradient(135deg, #667eea, #764ba2)',
+              border: 'none', background: loading ? '#94a3b8' : 'linear-gradient(135deg, #2563eb, #1e40af)',
               color: '#fff', fontWeight: 600, fontSize: '0.9rem', cursor: loading ? 'not-allowed' : 'pointer',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
               boxShadow: loading ? 'none' : '0 4px 14px rgba(102,126,234,0.4)',
@@ -236,7 +236,7 @@ const CreateUser = () => {
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <FaUsers style={{ color: '#667eea', fontSize: '1rem' }} />
+              <FaUsers style={{ color: '#2563eb', fontSize: '1rem' }} />
               <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 600, color: textColor }}>All Users</h3>
             </div>
             <span style={{

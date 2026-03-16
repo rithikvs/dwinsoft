@@ -80,7 +80,7 @@ const Settings = () => {
   const pageBg = isDark ? '#0f172a' : '#f1f5f9';
   const headerGradient = isDark
     ? 'linear-gradient(135deg, #1e293b 0%, #334155 100%)'
-    : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+    : 'linear-gradient(135deg, #2563eb 0%, #1e40af 100%)';
 
   const inputStyle = {
     width: '100%', padding: '0.65rem 0.85rem', borderRadius: '10px',
@@ -129,7 +129,7 @@ const Settings = () => {
         <div style={cardStyle}>
           <div style={{ padding: '1.25rem 1.5rem', borderBottom: `1px solid ${borderColor}`, display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
             <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: isDark ? '#312e81' : '#ede9fe', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <FaPalette style={{ color: '#7c3aed', fontSize: '1rem' }} />
+              <FaPalette style={{ color: '#2563eb', fontSize: '1rem' }} />
             </div>
             <div>
               <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: textColor }}>Appearance</h3>
@@ -141,7 +141,7 @@ const Settings = () => {
             <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.25rem' }}>
               {[
                 { value: 'light', icon: <FaSun />, label: 'Light', color: '#f59e0b', bg: '#fffbeb', activeBorder: '#f59e0b' },
-                { value: 'dark', icon: <FaMoon />, label: 'Dark', color: '#6366f1', bg: '#eef2ff', activeBorder: '#6366f1' },
+                { value: 'dark', icon: <FaMoon />, label: 'Dark', color: '#2563eb', bg: '#dbeafe', activeBorder: '#2563eb' },
               ].map(opt => (
                 <button key={opt.value} onClick={() => setTheme(opt.value)} style={{
                   flex: 1, padding: '1rem', borderRadius: '12px', cursor: 'pointer',
@@ -176,7 +176,7 @@ const Settings = () => {
               <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                 <div style={{ width: '20px', height: '20px', borderRadius: '6px', background: isDark ? '#1e293b' : '#ffffff', border: `1px solid ${borderColor}` }} />
                 <div style={{ width: '20px', height: '20px', borderRadius: '6px', background: isDark ? '#334155' : '#f1f5f9', border: `1px solid ${borderColor}` }} />
-                <div style={{ width: '20px', height: '20px', borderRadius: '6px', background: '#667eea' }} />
+                <div style={{ width: '20px', height: '20px', borderRadius: '6px', background: '#2563eb' }} />
                 <div style={{ width: '20px', height: '20px', borderRadius: '6px', background: '#10b981' }} />
                 <span style={{ fontSize: '0.8rem', color: mutedColor, marginLeft: '0.5rem' }}>
                   {isDark ? 'Dark mode enabled' : 'Light mode enabled'}
@@ -205,7 +205,7 @@ const Settings = () => {
                   type="text" placeholder="Your name" value={name}
                   onChange={e => setName(e.target.value)}
                   style={inputStyle}
-                  onFocus={e => { e.target.style.borderColor = '#667eea'; e.target.style.boxShadow = '0 0 0 3px rgba(102,126,234,0.15)'; }}
+                  onFocus={e => { e.target.style.borderColor = '#2563eb'; e.target.style.boxShadow = '0 0 0 3px rgba(37,99,235,0.15)'; }}
                   onBlur={e => { e.target.style.borderColor = borderColor; e.target.style.boxShadow = 'none'; }}
                 />
               </div>
@@ -215,7 +215,7 @@ const Settings = () => {
                   type="email" placeholder="your@email.com" value={email}
                   onChange={e => setEmail(e.target.value)}
                   style={inputStyle}
-                  onFocus={e => { e.target.style.borderColor = '#667eea'; e.target.style.boxShadow = '0 0 0 3px rgba(102,126,234,0.15)'; }}
+                  onFocus={e => { e.target.style.borderColor = '#2563eb'; e.target.style.boxShadow = '0 0 0 3px rgba(37,99,235,0.15)'; }}
                   onBlur={e => { e.target.style.borderColor = borderColor; e.target.style.boxShadow = 'none'; }}
                 />
               </div>
@@ -223,14 +223,14 @@ const Settings = () => {
               {/* Role badge */}
               <div style={{ marginBottom: '1.25rem', padding: '0.75rem 1rem', background: isDark ? '#0f172a' : '#f8fafc', borderRadius: '10px', border: `1px solid ${borderColor}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ fontSize: '0.8rem', color: mutedColor, fontWeight: 600 }}>Your Role</span>
-                <span style={{ padding: '0.2rem 0.65rem', borderRadius: '999px', fontSize: '0.78rem', fontWeight: 700, background: '#ede9fe', color: '#7c3aed' }}>
+                <span style={{ padding: '0.2rem 0.65rem', borderRadius: '999px', fontSize: '0.78rem', fontWeight: 700, background: '#dbeafe', color: '#2563eb' }}>
                   {user?.role || 'User'}
                 </span>
               </div>
 
               <button type="submit" disabled={saving} style={{
                 width: '100%', padding: '0.7rem', borderRadius: '10px', border: 'none',
-                background: saving ? '#94a3b8' : 'linear-gradient(135deg, #667eea, #764ba2)',
+                background: saving ? '#94a3b8' : 'linear-gradient(135deg, #2563eb, #1e40af)',
                 color: '#fff', fontWeight: 700, fontSize: '0.9rem', cursor: saving ? 'not-allowed' : 'pointer',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
                 transition: 'all 0.2s ease', boxShadow: '0 4px 14px rgba(102,126,234,0.3)',
@@ -273,7 +273,7 @@ const Settings = () => {
                       type={showCurrentPw ? 'text' : 'password'} value={currentPassword}
                       onChange={e => setCurrentPassword(e.target.value)}
                       style={{ ...inputStyle, paddingRight: '2.5rem' }} required placeholder="Enter current password"
-                      onFocus={e => { e.target.style.borderColor = '#667eea'; e.target.style.boxShadow = '0 0 0 3px rgba(102,126,234,0.15)'; }}
+                      onFocus={e => { e.target.style.borderColor = '#2563eb'; e.target.style.boxShadow = '0 0 0 3px rgba(37,99,235,0.15)'; }}
                       onBlur={e => { e.target.style.borderColor = borderColor; e.target.style.boxShadow = 'none'; }}
                     />
                     <button type="button" onClick={() => setShowCurrentPw(!showCurrentPw)} style={{
@@ -289,7 +289,7 @@ const Settings = () => {
                       type={showNewPw ? 'text' : 'password'} value={newPassword}
                       onChange={e => setNewPassword(e.target.value)}
                       style={{ ...inputStyle, paddingRight: '2.5rem' }} required placeholder="Min 6 characters"
-                      onFocus={e => { e.target.style.borderColor = '#667eea'; e.target.style.boxShadow = '0 0 0 3px rgba(102,126,234,0.15)'; }}
+                      onFocus={e => { e.target.style.borderColor = '#2563eb'; e.target.style.boxShadow = '0 0 0 3px rgba(37,99,235,0.15)'; }}
                       onBlur={e => { e.target.style.borderColor = borderColor; e.target.style.boxShadow = 'none'; }}
                     />
                     <button type="button" onClick={() => setShowNewPw(!showNewPw)} style={{
@@ -304,7 +304,7 @@ const Settings = () => {
                     type="password" value={confirmPassword}
                     onChange={e => setConfirmPassword(e.target.value)}
                     style={inputStyle} required placeholder="Re-enter new password"
-                    onFocus={e => { e.target.style.borderColor = '#667eea'; e.target.style.boxShadow = '0 0 0 3px rgba(102,126,234,0.15)'; }}
+                    onFocus={e => { e.target.style.borderColor = '#2563eb'; e.target.style.boxShadow = '0 0 0 3px rgba(37,99,235,0.15)'; }}
                     onBlur={e => { e.target.style.borderColor = borderColor; e.target.style.boxShadow = 'none'; }}
                   />
                 </div>

@@ -4,6 +4,7 @@ import axios from 'axios';
 import API_BASE_URL from '../utils/api';
 import { AuthContext } from '../context/AuthContext';
 import { ThemeContext } from '../context/ThemeContext';
+import { getThemeColors, colorPalette } from '../utils/colors';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import {
@@ -895,7 +896,7 @@ const Transactions = () => {
             {
               label: 'Transactions',
               value: transactions.length,
-              gradient: 'linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%)',
+              gradient: 'linear-gradient(135deg, #2563eb 0%, #60a5fa 100%)',
               iconBg: 'rgba(255,255,255,0.2)',
               icon: <FiLayers size={20} />,
               shadow: '0 8px 32px rgba(139,92,246,0.3)',
@@ -958,11 +959,11 @@ const Transactions = () => {
             >
               <span className="d-flex align-items-center gap-2">
                 <span style={{ background: isDark ? '#312e81' : '#eef2ff', borderRadius: '0.45rem', padding: '0.3rem', display: 'inline-flex' }}>
-                  <FiFilter size={15} style={{ color: '#6366f1' }} />
+                  <FiFilter size={15} style={{ color: '#2563eb' }} />
                 </span>
                 Filters & Search
                 {(filter.type || filter.category || filter.startDate || filter.endDate) && (
-                  <span style={{ background: '#6366f1', color: '#fff', borderRadius: '999px', fontSize: '0.65rem', padding: '0.1rem 0.45rem', fontWeight: 700 }}>Active</span>
+                  <span style={{ background: '#2563eb', color: '#fff', borderRadius: '999px', fontSize: '0.65rem', padding: '0.1rem 0.45rem', fontWeight: 700 }}>Active</span>
                 )}
               </span>
               <span style={{ background: isDark ? '#334155' : '#f1f5f9', borderRadius: '0.4rem', padding: '0.25rem', display: 'inline-flex' }}>
@@ -1001,7 +1002,7 @@ const Transactions = () => {
                 </div>
                 <div className="col-md-2 d-flex align-items-end">
                   <button className="btn btn-sm w-100" type="submit"
-                    style={{ background: 'linear-gradient(135deg, #4f46e5, #6366f1)', color: '#fff', borderRadius: '0.55rem', fontWeight: 600, border: 'none', padding: '0.45rem', boxShadow: '0 2px 8px rgba(99,102,241,0.3)' }}>
+                    style={{ background: 'linear-gradient(135deg, #2563eb, #3b82f6)', color: '#fff', borderRadius: '0.55rem', fontWeight: 600, border: 'none', padding: '0.45rem', boxShadow: '0 2px 8px rgba(37,99,235,0.3)' }}>
                     <FiSearch size={13} style={{ marginRight: 4 }} /> Apply
                   </button>
                 </div>
@@ -1040,8 +1041,8 @@ const Transactions = () => {
                 </button>
                 <button type="button" className="txn-pill-btn" onClick={() => setShowBankAccountForm(!showBankAccountForm)}
                   style={{
-                    background: showBankAccountForm ? 'linear-gradient(135deg, #7c3aed, #8b5cf6)' : '#faf5ff',
-                    color: showBankAccountForm ? '#fff' : '#7c3aed',
+                    background: showBankAccountForm ? 'linear-gradient(135deg, #2563eb, #3b82f6)' : '#eff6ff',
+                    color: showBankAccountForm ? '#fff' : '#2563eb',
                     border: showBankAccountForm ? 'none' : '1.5px solid #ddd6fe',
                     boxShadow: showBankAccountForm ? '0 2px 8px rgba(139,92,246,0.3)' : 'none'
                   }}>
@@ -1083,7 +1084,7 @@ const Transactions = () => {
             {showBankAccountForm && (
               <div style={{ background: 'linear-gradient(135deg, #faf5ff, #ede9fe)', borderRadius: '0.85rem', padding: '1.15rem', marginTop: '0.85rem', border: '1.5px solid #ddd6fe', animation: 'slideDown .25s ease' }}>
                 <h6 style={{ color: '#6d28d9', fontWeight: 700, fontSize: '0.82rem', marginBottom: '0.85rem', display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#8b5cf6', display: 'inline-block' }} />
+                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#2563eb', display: 'inline-block' }} />
                   New Bank Account
                 </h6>
                 <form onSubmit={handleBankAccountSubmit} className="row g-2">
@@ -1109,7 +1110,7 @@ const Transactions = () => {
                   </div>
                   <div className="col-md-2 d-flex align-items-end">
                     <button type="submit" className="btn btn-sm w-100" disabled={formLoading}
-                      style={{ background: 'linear-gradient(135deg, #7c3aed, #8b5cf6)', color: '#fff', borderRadius: '0.55rem', fontWeight: 600, border: 'none', boxShadow: '0 2px 8px rgba(139,92,246,0.25)' }}>
+                      style={{ background: 'linear-gradient(135deg, #2563eb, #3b82f6)', color: '#fff', borderRadius: '0.55rem', fontWeight: 600, border: 'none', boxShadow: '0 2px 8px rgba(37,99,235,0.25)' }}>
                       {formLoading ? '...' : 'Create'}
                     </button>
                   </div>
@@ -1128,7 +1129,7 @@ const Transactions = () => {
               </span>
               All Transactions
               <span style={{
-                background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+                background: 'linear-gradient(135deg, #2563eb, #3b82f6)',
                 color: '#fff',
                 fontSize: '0.68rem',
                 padding: '0.15rem 0.6rem',
@@ -1180,7 +1181,7 @@ const Transactions = () => {
                         <div style={{ fontSize: '0.82rem', color: '#94a3b8', maxWidth: 280 }}>Start tracking your finances by adding your first transaction</div>
                         {canEdit && (
                           <button className="btn btn-sm mt-2" onClick={() => setShowAddModal(true)}
-                            style={{ background: 'linear-gradient(135deg, #4f46e5, #6366f1)', color: '#fff', borderRadius: '0.55rem', fontWeight: 600, padding: '0.4rem 1rem', border: 'none', boxShadow: '0 2px 8px rgba(99,102,241,0.3)' }}>
+                            style={{ background: 'linear-gradient(135deg, #1e40af, #2563eb)', color: '#fff', borderRadius: '0.55rem', fontWeight: 600, padding: '0.4rem 1rem', border: 'none', boxShadow: '0 2px 8px rgba(37,99,235,0.3)' }}>
                             <FiPlus size={14} style={{ marginRight: 4 }} /> Add Transaction
                           </button>
                         )}
@@ -1518,7 +1519,7 @@ const Transactions = () => {
         }
         .txn-action-edit { color: #3b82f6 !important; }
         .txn-action-edit:hover { background: ${isDark ? '#1e3a5f' : '#eff6ff'} !important; border-color: #93c5fd !important; transform: translateY(-2px); box-shadow: 0 3px 8px rgba(59,130,246,0.15); }
-        .txn-action-download { color: #8b5cf6 !important; }
+        .txn-action-download { color: #2563eb !important; }
         .txn-action-download:hover { background: ${isDark ? '#2e1065' : '#f5f3ff'} !important; border-color: #c4b5fd !important; transform: translateY(-2px); box-shadow: 0 3px 8px rgba(139,92,246,0.15); }
         .txn-action-delete { color: #ef4444 !important; }
         .txn-action-delete:hover { background: ${isDark ? '#450a0a' : '#fef2f2'} !important; border-color: #fca5a5 !important; transform: translateY(-2px); box-shadow: 0 3px 8px rgba(239,68,68,0.15); }
@@ -1527,7 +1528,7 @@ const Transactions = () => {
           width: 36px;
           height: 36px;
           border: 3px solid ${isDark ? '#334155' : '#e2e8f0'};
-          border-top-color: #6366f1;
+          border-top-color: #2563eb;
           border-radius: 50%;
           animation: spin .7s linear infinite;
         }
@@ -1565,7 +1566,7 @@ const Transactions = () => {
           transition: all .2s ease !important;
         }
         .txn-modal-input:focus {
-          border-color: #6366f1 !important;
+          border-color: #2563eb !important;
           box-shadow: 0 0 0 3px rgba(99,102,241,0.1) !important;
           background: ${isDark ? '#0f172a' : '#fff'} !important;
         }

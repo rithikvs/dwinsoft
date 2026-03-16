@@ -96,7 +96,7 @@ const MyProfile = () => {
 
       {/* Profile Banner Card */}
       <div style={{ background: cardBg, borderRadius: '16px', boxShadow: isDark ? '0 2px 12px rgba(0,0,0,0.3)' : '0 4px 24px rgba(0,0,0,0.06)', overflow: 'hidden', marginBottom: '1.5rem' }}>
-        <div style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', height: '120px', position: 'relative' }}>
+        <div style={{ background: 'linear-gradient(135deg, #2563eb 0%, #1e40af 100%)', height: '120px', position: 'relative' }}>
           {profilePhoto ? (
             <img
               src={`http://localhost:5000${profilePhoto}`}
@@ -129,7 +129,7 @@ const MyProfile = () => {
               justifyContent: 'center',
               fontSize: '2rem',
               fontWeight: 700,
-              color: '#667eea',
+              color: '#2563eb',
               position: 'absolute',
               bottom: '-40px',
               left: '2rem',
@@ -143,7 +143,7 @@ const MyProfile = () => {
           <h3 style={{ margin: '0 0 0.25rem 0', color: textColor, fontSize: '1.4rem' }}>{p.username || 'User'}</h3>
           <p style={{ margin: 0, color: mutedColor, fontSize: '0.9rem' }}>{p.email || 'No email on file'}</p>
           <div style={{ marginTop: '0.75rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-            <span style={{ display: 'inline-block', padding: '0.2rem 0.65rem', borderRadius: '999px', fontSize: '0.8rem', fontWeight: 600, background: '#ede9fe', color: '#7c3aed' }}>
+            <span style={{ display: 'inline-block', padding: '0.2rem 0.65rem', borderRadius: '999px', fontSize: '0.8rem', fontWeight: 600, background: '#dbeafe', color: '#2563eb' }}>
               {p.role || 'Employee'}
             </span>
             {p.department && (

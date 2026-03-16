@@ -3,6 +3,7 @@ import axios from 'axios';
 import API_BASE_URL from '../utils/api';
 import { AuthContext } from '../context/AuthContext';
 import { ThemeContext } from '../context/ThemeContext';
+import { getThemeColors, colorPalette } from '../utils/colors';
 import { useNavigate } from 'react-router-dom';
 import EmployeeDashboard from './EmployeeDashboard';
 import { FiTrendingUp, FiTrendingDown, FiDollarSign, FiCreditCard, FiArrowRight, FiCalendar, FiFileText, FiLayers } from 'react-icons/fi';
@@ -92,10 +93,8 @@ const Dashboard = () => {
     if (user?.role === 'Employee') return <EmployeeDashboard />;
 
     // ── Theme Tokens ──
-    const cardBg = isDark ? '#1e293b' : '#ffffff';
-    const text = isDark ? '#e2e8f0' : '#1e293b';
-    const muted = isDark ? '#94a3b8' : '#64748b';
-    const border = isDark ? '#334155' : '#e2e8f0';
+    const colors = getThemeColors(isDark);
+    const { cardBg, textColor: text, mutedColor: muted, borderColor: border } = colors;
 
     const hcIncome = handCashRecords.filter(hc => hc.type === 'Income' || !hc.type).reduce((s, hc) => s + (hc.amount || 0), 0);
     const hcExpense = handCashRecords.filter(hc => hc.type === 'Expense').reduce((s, hc) => s + (hc.amount || 0), 0);
@@ -105,35 +104,35 @@ const Dashboard = () => {
     const statCards = [
         {
             title: 'Total Income', value: fmt(stats.income), sub: 'Transactions + Hand Cash',
-            gradient: 'linear-gradient(135deg, #059669, #34d399)', icon: <FiTrendingUp size={22} />,
-            shadow: 'rgba(5,150,105,0.35)'
+            gradient: `linear-gradient(135deg, ${colorPalette.status.success}, ${colorPalette.status.success}dd)`, icon: <FiTrendingUp size={22} />,
+            shadow: 'rgba(16, 185, 129, 0.35)'
         },
         {
             title: 'Total Expenses', value: fmt(stats.expense), sub: 'Transactions + Hand Cash',
-            gradient: 'linear-gradient(135deg, #dc2626, #f87171)', icon: <FiTrendingDown size={22} />,
-            shadow: 'rgba(220,38,38,0.35)'
+            gradient: `linear-gradient(135deg, ${colorPalette.status.error}, #f87171)`, icon: <FiTrendingDown size={22} />,
+            shadow: 'rgba(239, 68, 68, 0.35)'
         },
         {
             title: 'Net Balance', value: fmt(stats.balance), sub: 'Income − Expenses',
             gradient: stats.balance >= 0
-                ? 'linear-gradient(135deg, #2563eb, #60a5fa)'
-                : 'linear-gradient(135deg, #dc2626, #ef4444)',
+                ? `linear-gradient(135deg, ${colorPalette.primary.base}, ${colorPalette.primary.light})`
+                : `linear-gradient(135deg, ${colorPalette.status.error}, ${colorPalette.status.error}cc)`,
             icon: <FiDollarSign size={22} />,
-            shadow: stats.balance >= 0 ? 'rgba(37,99,235,0.35)' : 'rgba(220,38,38,0.35)'
+            shadow: stats.balance >= 0 ? 'rgba(37, 99, 235, 0.35)' : 'rgba(239, 68, 68, 0.35)'
         },
         {
             title: 'Bank Balance', value: fmt(stats.totalBankBalance), sub: `${stats.bankAccountCount} account${stats.bankAccountCount !== 1 ? 's' : ''}`,
-            gradient: 'linear-gradient(135deg, #d97706, #fbbf24)', icon: <FiCreditCard size={22} />,
-            shadow: 'rgba(217,119,6,0.35)'
+            gradient: `linear-gradient(135deg, ${colorPalette.status.warning}, #fbbf24)`, icon: <FiCreditCard size={22} />,
+            shadow: 'rgba(217, 119, 6, 0.35)'
         }
     ];
 
     // ── Quick Links ──
     const quickLinks = [
-        { label: 'Transactions', icon: <FiFileText size={18} />, path: '/transactions', color: '#3b82f6' },
-        { label: 'Hand Cash', icon: <FiDollarSign size={18} />, path: '/hand-cash', color: '#10b981' },
-        { label: 'Bank Accounts', icon: <FiCreditCard size={18} />, path: '/bank-accounts', color: '#8b5cf6' },
-        { label: 'Invoices', icon: <FiLayers size={18} />, path: '/invoices', color: '#f59e0b' },
+        { label: 'Transactions', icon: <FiFileText size={18} />, path: '/transactions', color: colorPalette.primary.base },
+        { label: 'Hand Cash', icon: <FiDollarSign size={18} />, path: '/hand-cash', color: colorPalette.status.success },
+        { label: 'Bank Accounts', icon: <FiCreditCard size={18} />, path: '/bank-accounts', color: '#2563eb' },
+        { label: 'Invoices', icon: <FiLayers size={18} />, path: '/invoices', color: colorPalette.status.warning },
     ];
 
     return (
@@ -142,11 +141,11 @@ const Dashboard = () => {
             {/* ── Welcome Banner ── */}
             <div style={{
                 background: isDark
-                    ? 'linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%)'
-                    : 'linear-gradient(135deg, #3b82f6 0%, #6366f1 100%)',
+                    ? `linear-gradient(135deg, ${colorPalette.primary.dark} 0%, ${colorPalette.primary.darkest} 100%)`
+                    : `linear-gradient(135deg, ${colorPalette.primary.base} 0%, ${colorPalette.primary.medium} 100%)`,
                 borderRadius: '20px', padding: '2rem 2.5rem', marginBottom: '2rem',
                 color: '#fff', position: 'relative', overflow: 'hidden',
-                boxShadow: isDark ? '0 8px 32px rgba(0,0,0,0.4)' : '0 8px 32px rgba(59,130,246,0.3)',
+                boxShadow: isDark ? '0 8px 32px rgba(0,0,0,0.4)' : `0 8px 32px ${colorPalette.primary.base}4d`,
             }}>
                 <div style={{ position: 'absolute', top: '-40px', right: '-40px', width: '180px', height: '180px', borderRadius: '50%', background: 'rgba(255,255,255,0.08)' }} />
                 <div style={{ position: 'absolute', bottom: '-30px', right: '80px', width: '120px', height: '120px', borderRadius: '50%', background: 'rgba(255,255,255,0.05)' }} />
@@ -212,11 +211,11 @@ const Dashboard = () => {
                             style={{
                                 display: 'flex', alignItems: 'center', gap: '0.35rem',
                                 padding: '0.4rem 1rem', borderRadius: '999px', border: `1px solid ${border}`,
-                                background: 'transparent', color: '#3b82f6', fontSize: '0.8rem',
+                                background: 'transparent', color: colorPalette.primary.base, fontSize: '0.8rem',
                                 fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s',
                             }}
-                            onMouseEnter={e => { e.currentTarget.style.background = '#3b82f6'; e.currentTarget.style.color = '#fff'; }}
-                            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#3b82f6'; }}
+                            onMouseEnter={e => { e.currentTarget.style.background = colorPalette.primary.base; e.currentTarget.style.color = '#fff'; }}
+                            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = colorPalette.primary.base; }}
                         >
                             View All <FiArrowRight size={14} />
                         </button>
@@ -238,11 +237,11 @@ const Dashboard = () => {
                                         <div style={{
                                             width: '38px', height: '38px', borderRadius: '10px',
                                             background: t.type === 'Income'
-                                                ? (isDark ? 'rgba(16,185,129,0.15)' : '#d1fae5')
-                                                : (isDark ? 'rgba(239,68,68,0.15)' : '#fee2e2'),
+                                                ? (isDark ? 'rgba(16, 185, 129, 0.15)' : colorPalette.status.successLight)
+                                                : (isDark ? 'rgba(239, 68, 68, 0.15)' : colorPalette.status.errorLight),
                                             display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
                                         }}>
-                                            {t.type === 'Income' ? <FiTrendingUp size={18} color="#10b981" /> : <FiTrendingDown size={18} color="#ef4444" />}
+                                            {t.type === 'Income' ? <FiTrendingUp size={18} color={colorPalette.status.success} /> : <FiTrendingDown size={18} color={colorPalette.status.error} />}
                                         </div>
                                         <div style={{ minWidth: 0 }}>
                                             <div style={{ fontWeight: 600, fontSize: '0.9rem', color: text, lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.description}</div>
@@ -258,9 +257,9 @@ const Dashboard = () => {
                                                 <span style={{
                                                     fontSize: '0.65rem', padding: '1px 6px', borderRadius: '4px',
                                                     background: getPaymentMethodLabel(t) === 'Hand Cash'
-                                                        ? (isDark ? 'rgba(245,158,11,0.15)' : '#fef3c7')
-                                                        : (isDark ? 'rgba(99,102,241,0.15)' : '#e0e7ff'),
-                                                    color: getPaymentMethodLabel(t) === 'Hand Cash' ? '#d97706' : '#6366f1',
+                                                        ? (isDark ? 'rgba(245, 158, 11, 0.15)' : colorPalette.status.warningLight)
+                                                        : (isDark ? 'rgba(37, 99, 235, 0.15)' : '#e0e7ff'),
+                                                    color: getPaymentMethodLabel(t) === 'Hand Cash' ? colorPalette.status.warning : colorPalette.primary.base,
                                                     fontWeight: 500,
                                                 }}>{getPaymentMethodLabel(t) || 'Bank'}</span>
                                             </div>
@@ -268,7 +267,7 @@ const Dashboard = () => {
                                     </div>
                                     <div style={{
                                         fontWeight: 700, fontSize: '0.95rem', whiteSpace: 'nowrap', marginLeft: '1rem',
-                                        color: t.type === 'Income' ? '#10b981' : '#ef4444',
+                                        color: t.type === 'Income' ? colorPalette.status.success : colorPalette.status.error,
                                     }}>
                                         {t.type === 'Income' ? '+' : '−'}{fmt(t.amount)}
                                     </div>
@@ -294,10 +293,10 @@ const Dashboard = () => {
                     }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
                             <div style={{
-                                background: isDark ? 'rgba(16,185,129,0.15)' : '#d1fae5',
+                                background: isDark ? `rgba(16, 185, 129, 0.15)` : colorPalette.status.successLight,
                                 borderRadius: '10px', padding: '0.5rem', display: 'flex',
                             }}>
-                                <FiDollarSign size={18} color="#10b981" />
+                                <FiDollarSign size={18} color={colorPalette.status.success} />
                             </div>
                             <h6 style={{ margin: 0, fontWeight: 700, color: text, fontSize: '1rem' }}>Hand Cash</h6>
                         </div>

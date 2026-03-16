@@ -57,7 +57,7 @@ const EmployeeDashboard = () => {
   const styles = {
     container: { padding: '1.5rem' },
     welcomeCard: {
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      background: 'linear-gradient(135deg, #2563eb 0%, #1e40af 100%)',
       borderRadius: '16px',
       padding: '2rem',
       color: '#fff',
@@ -187,7 +187,7 @@ const EmployeeDashboard = () => {
       <div style={styles.statsGrid}>
         <div style={styles.statCard}>
           <div style={{ ...styles.statIcon, background: '#ede9fe' }}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
           </div>
           <div>
             <div style={{ fontSize: '0.8rem', color: mutedColor, fontWeight: '500' }}>Invoices</div>
@@ -235,7 +235,7 @@ const EmployeeDashboard = () => {
           onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.06)'; }}
         >
           <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: '#ede9fe', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '0.75rem' }}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
           </div>
           <div style={{ fontWeight: '600', color: textColor, marginBottom: '0.25rem' }}>View Invoices</div>
           <div style={{ fontSize: '0.8rem', color: mutedColor }}>Check your payslips and invoices</div>
@@ -402,7 +402,7 @@ const EmployeeDashboard = () => {
                   fontSize: '0.8rem',
                   fontWeight: '600',
                   background: '#ede9fe',
-                  color: '#7c3aed',
+                  color: '#2563eb',
                 }}>{user?.role || 'Employee'}</span>
               </div>
               <div style={{ ...styles.infoRow, borderBottom: 'none' }}>
