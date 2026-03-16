@@ -11,6 +11,7 @@ const getAllUsers = async (req, res) => {
 const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const { generateEmployeeId } = require('../utils/idGenerator');
 
 // Only Admin can create users. No public registration.
 const createUser = async (req, res) => {
@@ -25,9 +26,19 @@ const createUser = async (req, res) => {
         if (user) {
             return res.status(400).json({ message: 'User already exists' });
         }
-        user = new User({ username, email, password, role });
+        
+        // Generate employeeId for HR and Employee roles
+        let employeeId = null;
+        if (role === 'HR' || role === 'Employee') {
+            employeeId = await generateEmployeeId(role);
+        }
+        
+        user = new User({ username, email, password, role, employeeId });
         await user.save();
-        res.status(201).json({ message: 'User created successfully.' });
+        res.status(201).json({ 
+            message: 'User created successfully.',
+            employeeId: employeeId
+        });
     } catch (err) {
         console.error(err.message);
         res.status(500).send('Server Error');

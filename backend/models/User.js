@@ -16,6 +16,12 @@ const UserSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    employeeId: {
+        type: String,
+        unique: true,
+        sparse: true,
+        default: null
+    },
     role: {
         type: String,
         enum: ['Admin', 'Accountant', 'HR', 'Employee', 'Auditor'],

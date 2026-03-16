@@ -20,6 +20,7 @@ const CreateUser = () => {
   const [users, setUsers] = useState([]);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [generatedId, setGeneratedId] = useState('');
   const [loading, setLoading] = useState(false);
   const [usersLoading, setUsersLoading] = useState(true);
 
@@ -56,20 +57,26 @@ const CreateUser = () => {
     e.preventDefault();
     setError('');
     setSuccess('');
+    setGeneratedId('');
     if (!username) { setError('Username is required.'); return; }
     if (!password) { setError('Password is required.'); return; }
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      await axios.post(
+      const res = await axios.post(
         `${API_BASE_URL}/api/auth/create-user`,
         { username, email, password, role },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setSuccess(`User "${username}" created successfully!`);
+      const idDisplay = res.data.employeeId ? ` (ID: ${res.data.employeeId})` : '';
+      setSuccess(`User "${username}" created successfully!${idDisplay}`);
+      setGeneratedId(res.data.employeeId || '');
       setFormData({ username: '', password: '', role: 'HR' });
       fetchUsers();
-      setTimeout(() => setSuccess(''), 4000);
+      setTimeout(() => {
+        setSuccess('');
+        setGeneratedId('');
+      }, 4000);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to create user');
       setTimeout(() => setError(''), 4000);
@@ -189,6 +196,21 @@ const CreateUser = () => {
                   <option value="Employee">Employee</option>
                 </select>
               </div>
+              {generatedId && (
+                <div style={{
+                  padding: '0.75rem', borderRadius: '10px',
+                  background: isDark ? '#1e293b' : '#f0f9ff',
+                  border: `1px solid ${isDark ? '#334155' : '#bfdbfe'}`,
+                  display: 'flex', alignItems: 'center', gap: '0.5rem',
+                }}>
+                  <span style={{ fontSize: '0.8rem', fontWeight: 600, color: mutedColor, textTransform: 'uppercase' }}>
+                    Generated ID:
+                  </span>
+                  <span style={{ fontSize: '0.9rem', fontWeight: 700, color: isDark ? '#60a5fa' : '#0284c7' }}>
+                    {generatedId}
+                  </span>
+                </div>
+              )}
             </div>
             <button type="submit" disabled={loading} style={{
               width: '100%', marginTop: '1.25rem', padding: '0.7rem', borderRadius: '10px',
@@ -238,7 +260,7 @@ const CreateUser = () => {
               <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 0 }}>
                 <thead>
                   <tr style={{ background: isDark ? '#334155' : '#f8fafc' }}>
-                    {['User', 'Email', 'Role'].map(h => (
+                    {['User', 'Email', 'Employee ID', 'Role'].map(h => (
                       <th key={h} style={{
                         padding: '0.7rem 1rem', fontSize: '0.7rem', fontWeight: 700, color: mutedColor,
                         textTransform: 'uppercase', letterSpacing: '0.5px', textAlign: 'left',
@@ -285,6 +307,13 @@ const CreateUser = () => {
                           </div>
                         </td>
                         <td style={{ padding: '0.7rem 1rem', color: mutedColor, fontSize: '0.85rem' }}>{u.email}</td>
+                        <td style={{ padding: '0.7rem 1rem', color: textColor, fontSize: '0.85rem', fontWeight: 600 }}>
+                          {u.employeeId ? (
+                            <span style={{ color: isDark ? '#60a5fa' : '#0284c7' }}>{u.employeeId}</span>
+                          ) : (
+                            <span style={{ color: mutedColor }}>—</span>
+                          )}
+                        </td>
                         <td style={{ padding: '0.7rem 1rem' }}>
                           <span style={{
                             padding: '0.15rem 0.55rem', borderRadius: '999px', fontSize: '0.7rem',

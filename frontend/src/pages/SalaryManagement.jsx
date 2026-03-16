@@ -17,6 +17,7 @@ const SalaryManagement = () => {
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
   const [filter, setFilter] = useState('All');
+  const [searchId, setSearchId] = useState('');
 
   // Monthly salary state
   const [salaryRecords, setSalaryRecords] = useState([]);
@@ -139,7 +140,14 @@ const SalaryManagement = () => {
     } catch (err) { setError('Failed to update status'); setTimeout(() => setError(''), 3000); }
   };
 
-  const filteredStaff = filter === 'All' ? staff : staff.filter(s => s.role === filter);
+  const filteredStaff = staff.filter(s => {
+    const roleMatch = filter === 'All' || s.role === filter;
+    const idMatch = searchId === '' || 
+                    (s.employeeId && s.employeeId.toLowerCase().includes(searchId.toLowerCase())) ||
+                    (s.username && s.username.toLowerCase().includes(searchId.toLowerCase())) ||
+                    (s._id && s._id.toLowerCase().includes(searchId.toLowerCase()));
+    return roleMatch && idMatch;
+  });
   const years = [];
   for (let y = new Date().getFullYear(); y >= 2020; y--) years.push(y);
   const netPreview = (Number(salaryForm.basicSalary) || 0) + (Number(salaryForm.bonus) || 0) - (Number(salaryForm.deductions) || 0);
@@ -337,14 +345,96 @@ const SalaryManagement = () => {
       {/* ===== STAFF DETAILS TAB ===== */}
       {activeTab === 'staff' && (
         <div>
-          <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.25rem' }}>
-            {['All', 'HR', 'Employee'].map(f => (
-              <button key={f} onClick={() => setFilter(f)} style={{
-                padding: '0.4rem 1rem', borderRadius: '8px', border: `1px solid ${filter === f ? '#667eea' : borderColor}`,
-                background: filter === f ? '#667eea' : 'transparent', color: filter === f ? '#fff' : textColor,
-                fontWeight: 500, cursor: 'pointer', fontSize: '0.85rem',
-              }}>{f}</button>
-            ))}
+          {/* Attractive Search Section */}
+          <div style={{
+            background: cardBg,
+            borderRadius: '16px',
+            padding: '2rem',
+            marginBottom: '2rem',
+            border: `2px solid ${borderColor}`,
+            boxShadow: isDark ? '0 8px 24px rgba(0,0,0,0.4)' : '0 8px 24px rgba(102, 126, 234, 0.15)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '1.5rem'
+          }}>
+            {/* Search Input with Icon */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+              <div style={{ fontSize: '1.8rem', color: '#667eea' }}></div>
+              <div style={{ flex: 1 }}>
+                <label style={{ display: 'block', fontSize: '0.85rem', color: mutedColor, fontWeight: 700, marginBottom: '0.6rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                  Search Staff Member
+                </label>
+                <input
+                  type="text"
+                  placeholder="Enter Employee ID, Username, or Name..."
+                  value={searchId}
+                  onChange={(e) => setSearchId(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '0.9rem 1.2rem',
+                    borderRadius: '10px',
+                    border: `2px solid ${searchId ? '#667eea' : borderColor}`,
+                    background: inputBg,
+                    color: textColor,
+                    fontSize: '1rem',
+                    fontWeight: 500,
+                    transition: 'all 0.3s ease',
+                    outline: 'none',
+                    boxShadow: searchId ? `0 0 0 3px ${isDark ? 'rgba(102, 126, 234, 0.2)' : 'rgba(102, 126, 234, 0.1)'}` : 'none'
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* Role Filter Buttons */}
+            <div>
+              <label style={{ display: 'block', fontSize: '0.85rem', color: mutedColor, fontWeight: 700, marginBottom: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                Filter by Role
+              </label>
+              <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+                {['All', 'HR', 'Employee'].map(f => (
+                  <button
+                    key={f}
+                    onClick={() => setFilter(f)}
+                    style={{
+                      padding: '0.75rem 1.5rem',
+                      borderRadius: '10px',
+                      border: `2px solid ${filter === f ? '#667eea' : borderColor}`,
+                      background: filter === f ? 'linear-gradient(135deg, #667eea, #764ba2)' : 'transparent',
+                      color: filter === f ? '#fff' : textColor,
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      fontSize: '0.95rem',
+                      transition: 'all 0.3s ease',
+                      boxShadow: filter === f ? `0 4px 12px rgba(102, 126, 234, 0.4)` : 'none',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px'
+                    }}
+                  >
+                    {f}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Results Counter */}
+            {searchId && (
+              <div style={{
+                padding: '0.8rem 1.2rem',
+                borderRadius: '8px',
+                background: isDark ? '#0f172a' : '#f0f4ff',
+                border: `1px solid #667eea`,
+                fontSize: '0.9rem',
+                fontWeight: 600,
+                color: '#667eea',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.6rem'
+              }}>
+                <span>✓</span>
+                <span>{filteredStaff.length} staff member{filteredStaff.length !== 1 ? 's' : ''} found</span>
+              </div>
+            )}
           </div>
 
           {filteredStaff.length === 0 ? (
@@ -358,7 +448,7 @@ const SalaryManagement = () => {
                       <div style={{ width: '42px', height: '42px', borderRadius: '50%', background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, fontSize: '1.1rem' }}>{user.username?.charAt(0).toUpperCase()}</div>
                       <div>
                         <div style={{ color: '#fff', fontWeight: 600, fontSize: '1rem' }}>{user.username}</div>
-                        <div style={{ color: 'rgba(255,255,255,0.8)', fontSize: '0.8rem' }}>{user.email}</div>
+                        <div style={{ color: 'rgba(255,255,255,0.8)', fontSize: '0.8rem' }}>{user.email} {user.employeeId && <span style={{ marginLeft: '0.5rem', fontWeight: 600 }}>• ID: {user.employeeId}</span>}</div>
                       </div>
                     </div>
                     <span style={{ background: 'rgba(255,255,255,0.2)', color: '#fff', padding: '0.2rem 0.6rem', borderRadius: '999px', fontSize: '0.75rem', fontWeight: 600 }}>{user.role}</span>
