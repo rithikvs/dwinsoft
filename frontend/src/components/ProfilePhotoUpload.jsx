@@ -87,7 +87,7 @@ const ProfilePhotoUpload = ({ currentPhoto, onPhotoUpdate, theme }) => {
             <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
                 {currentPhoto ? (
                     <img
-                        src={`http://localhost:5000${currentPhoto}`}
+                        src={`${API_BASE_URL.replace('/api', '')}${currentPhoto}`}
                         alt="Profile"
                         style={{
                             width: '120px',

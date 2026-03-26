@@ -138,7 +138,7 @@ const EmployeeProfile = () => {
         <div style={styles.profileBanner}>
           {profilePhoto ? (
             <img
-              src={`http://localhost:5000${profilePhoto}`}
+              src={`${API_BASE_URL.replace('/api', '')}${profilePhoto}`}
               alt="Profile"
               style={{
                 ...styles.avatar,

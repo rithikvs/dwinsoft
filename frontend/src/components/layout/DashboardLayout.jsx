@@ -79,7 +79,7 @@ const DashboardLayout = () => {
                     <div className="d-flex align-items-center mb-2">
                         {(user?.role === 'HR' || user?.role === 'Employee') && profilePhoto ? (
                             <img
-                                src={`http://localhost:5000${profilePhoto}`}
+                                src={`${API_BASE_URL.replace('/api', '')}${profilePhoto}`}
                                 alt={user?.username}
                                 style={{
                                     width: '44px',

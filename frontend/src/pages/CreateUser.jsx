@@ -3,6 +3,7 @@ import axios from 'axios';
 import API_BASE_URL from '../utils/api';
 import { ThemeContext } from '../context/ThemeContext';
 import { FaUserPlus, FaUsers, FaEnvelope, FaLock, FaUserTag, FaCheckCircle, FaExclamationCircle, FaTrash } from 'react-icons/fa';
+import ProfilePhotoUpload from '../components/ProfilePhotoUpload';
 
 const ROLE_COLORS = {
   Admin: { bg: '#dbeafe', color: '#1d4ed8' },
@@ -23,6 +24,7 @@ const CreateUser = () => {
   const [generatedId, setGeneratedId] = useState('');
   const [loading, setLoading] = useState(false);
   const [usersLoading, setUsersLoading] = useState(true);
+  const [profilePhoto, setProfilePhoto] = useState(null);
 
   const textColor = isDark ? '#e2e8f0' : '#1e293b';
   const mutedColor = isDark ? '#94a3b8' : '#64748b';
@@ -195,6 +197,16 @@ const CreateUser = () => {
                   <option value="HR">HR</option>
                   <option value="Employee">Employee</option>
                 </select>
+              </div>
+              <div>
+                <label style={labelStyle}>Profile Photo (Optional)</label>
+                <div style={{ marginTop: '0.5rem' }}>
+                  <ProfilePhotoUpload
+                    currentPhoto={profilePhoto}
+                    onPhotoUpdate={setProfilePhoto}
+                    theme={theme}
+                  />
+                </div>
               </div>
               {generatedId && (
                 <div style={{

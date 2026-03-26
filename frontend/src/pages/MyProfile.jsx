@@ -99,7 +99,7 @@ const MyProfile = () => {
         <div style={{ background: 'linear-gradient(135deg, #2563eb 0%, #1e40af 100%)', height: '120px', position: 'relative' }}>
           {profilePhoto ? (
             <img
-              src={`http://localhost:5000${profilePhoto}`}
+              src={`${API_BASE_URL.replace('/api', '')}${profilePhoto}`}
               alt="Profile"
               style={{
                 width: '80px',
